@@ -1,0 +1,15 @@
+USE freebee;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS GET_CHATS $$
+CREATE PROCEDURE GET_CHATS()
+COMMENT 'Возвращает всех список чатов'
+BEGIN
+    SELECT
+            CH.CHAT_ID,
+            CH.NAME
+        FROM
+            chat as CH;
+END
+$$
