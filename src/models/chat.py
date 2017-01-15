@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import db_worker
+from . import db_worker
 import logging
-import message
-import user
+from . import message
+from . import user
 
 
 class Chat:
@@ -31,7 +31,7 @@ class Chat:
         # return [message.Message(*m) for m in messages]
 
     def get_last_messages(self, conn, mess_count):
-        messages = db_worker.execute(conn, 'CALL GET_LAST_MESSAGES(%s)', (self.id, mess_count))
+        messages = db_worker.execute(conn, 'CALL GET_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
         message_list = []
         for mess in messages:
             id, time, text, user_id = mess

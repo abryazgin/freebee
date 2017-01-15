@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import db_worker
+from . import db_worker
 import logging
-import chat
+from . import chat
 
 
 class User:
