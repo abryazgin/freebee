@@ -18,32 +18,42 @@ class Chat:
     @staticmethod
     def get_all_chats(conn):
         chats = db_worker.execute(conn, 'CALL GET_CHATS()')
-        return [Chat(*ch) for ch in chats]
+        return [Chat(id=ch['CHAT_ID'],
+                     name=ch['NAME'])
+                for ch in chats]
 
     def get_all_messages(self, conn):
         messages = db_worker.execute(conn, 'CALL GET_MESSAGES(%s)', (self.id,))
         message_list = []
         for mess in messages:
-            id, time, text, user_id = mess
-            sender = user.User.get_user_by_id(conn, user_id)
-            message_list.append(message.Message(id, time, text, sender))
+            user_id = mess['USER_ID']
+            user_sender = user.User.get_user_by_id(conn, user_id)
+            message_list.append(message.Message(
+                id=mess['MESSAGE_ID'],
+                time=mess['SEND_TIME'],
+                text=mess['MESS_TEXT'],
+                sender=user_sender))
+
         return message_list
-        # return [message.Message(*m) for m in messages]
 
     def get_last_messages(self, conn, mess_count):
         messages = db_worker.execute(conn, 'CALL GET_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
         message_list = []
         for mess in messages:
-            id, time, text, user_id = mess
-            sender = user.User.get_user_by_id(conn, user_id)
-            message_list.append(message.Message(id, time, text, sender))
+            user_id = mess['USER_ID']
+            user_sender = user.User.get_user_by_id(conn, user_id)
+            message_list.append(message.Message(
+                id=mess['MESSAGE_ID'],
+                time=mess['SEND_TIME'],
+                text=mess['MESS_TEXT'],
+                sender=user_sender)
+            )
         return message_list
-        # return [message.Message(*m) for m in messages]
 
 
 if __name__ == '__main__':
     db = db_worker.get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     # Поиск всех чатов, всех сообщений в каждом чате и последнего сообщения в каждом чате
     chat_list = Chat.get_all_chats(cursor)

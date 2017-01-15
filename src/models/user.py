@@ -16,12 +16,17 @@ class User:
 
     def __str__(self):
         return 'id = {0},\tlogin = {1},\temail = {2},\tpassword = {3},\trole = {4}'.format(
-                self.id, self.login, self.email, self.role, self.password)
+                self.id, self.login, self.email, self.password, self.role)
 
     @staticmethod
     def get_all_users(conn):
         users = db_worker.execute(conn, 'CALL GET_ALL_USERS()')
-        return [User(*u) for u in users]
+        return [User(id=u['USER_ID'],
+                     login=u['LOGIN'],
+                     email=u['EMAIL'],
+                     password=u['PASSWORD'],
+                     role=u['ROLE'])
+                for u in users]
 
     @staticmethod
     def get_user_by_id(conn, id):
@@ -30,9 +35,11 @@ class User:
             logging.write('Пользователя № %s не существует!' % id)
             return None
         u = u[0]
-        # id, login, email, password, role = u
-        current_user = User(*u)
-        return current_user
+        return User(id=u['USER_ID'],
+                    login=u['LOGIN'],
+                    email=u['EMAIL'],
+                    password=u['PASSWORD'],
+                    role=u['ROLE'])
 
     @staticmethod
     def get_user_by_login(conn, log):
@@ -41,17 +48,22 @@ class User:
             logging.write('Пользователя %s не существует!' % log)
             return None
         u = u[0]
-        current_user = User(*u)
-        return current_user
+        return User(id=u['USER_ID'],
+                    login=u['LOGIN'],
+                    email=u['EMAIL'],
+                    password=u['PASSWORD'],
+                    role=u['ROLE'])
 
     def get_chat_list(self, conn):
         chats = db_worker.execute(conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
-        return [chat.Chat(*ch) for ch in chats]
+        return [chat.Chat(id=ch['CHAT_ID'],
+                          name=ch['NAME'])
+                for ch in chats]
 
 
 if __name__ == '__main__':
     db = db_worker.get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
 
     # Поиск всех пользователей
     logging.write('----------------\nВсе пользователи:')
@@ -65,12 +77,13 @@ if __name__ == '__main__':
         logging.write('')
 
     # Поиск пользователя по логину
-    log = 'admin'
-    logging.write('----------------\nПользователь %s:' % log)
-    user_admin = User.get_user_by_login(cursor, log)
+    login = 'admin'
+    logging.write('----------------\nПользователь %s:' % login)
+    user_admin = User.get_user_by_login(cursor, login)
     logging.write(user_admin)
 
     # Поиск списка чатов пользователя
+    logging.write('Список чатов пользователя %s:' % login)
     admin_chat_list = user_admin.get_chat_list(cursor)
     for chat in admin_chat_list:
         logging.write(chat)
@@ -82,15 +95,15 @@ if __name__ == '__main__':
     logging.write(user2)
 
     # sql-инъекция
-    log = 'john\'); DROP database freebee;-- '
-    logging.write('----------------\nПользователь %s:' % log)
-    user_drop_table = User.get_user_by_login(cursor, log)
+    login = 'john\'); DROP database freebee;-- '
+    logging.write('----------------\nПользователь %s:' % login)
+    user_drop_table = User.get_user_by_login(cursor, login)
     logging.write(user_drop_table)
 
     # Поиск пользователя, отсутствующего в базе
-    log = 'dfghjskdlf'
-    logging.write('----------------\nПользователь %s:' % log)
-    user_nonsense = User.get_user_by_login(cursor, log)
+    login = 'dfghjskdlf'
+    logging.write('----------------\nПользователь %s:' % login)
+    user_nonsense = User.get_user_by_login(cursor, login)
     logging.write(user_nonsense)
 
     cursor.close()

@@ -10,7 +10,7 @@ BEGIN
             U.USER_ID,
             U.LOGIN,
             EMAIL,
-            R.NAME,
+            R.NAME as 'ROLE',
             U.PASSWORD
         FROM
             user as U
@@ -29,7 +29,7 @@ BEGIN
             U.USER_ID,
             U.LOGIN,
             U.EMAIL,
-            R.NAME,
+            R.NAME as 'ROLE',
             U.PASSWORD
         FROM
             user as U
@@ -50,7 +50,7 @@ BEGIN
             U.USER_ID,
             U.LOGIN,
             U.EMAIL,
-            R.NAME,
+            R.NAME as 'ROLE',
             U.PASSWORD
         FROM
             user as U
