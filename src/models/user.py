@@ -60,14 +60,44 @@ class User:
                           name=ch['NAME'])
                 for ch in chats]
 
+    @staticmethod
+    def create_user(conn, u):
+        result = db_worker.execute(conn,
+                                   'CALL CREATE_USER(%s, %s, %s, %s)',
+                                   (u.login, u.email, u.password, u.role)
+                                   )
+        result = result[0]
+        return result['NEW_ID']
+
+    @staticmethod
+    def delete_user(conn, u):
+        return db_worker.change(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
+
 
 if __name__ == '__main__':
     db = db_worker.get_db()
     cursor = db.cursor(dictionary=True)
 
+    # Поиск пользователя по логину:
+    # - если пользователь с указанным логином не найден, он добавляется в базу;
+    # - если найден - удаляется из базы.
+    login = 'user_x'
+    logging.write('----------------\nПользователь %s:' % login)
+    user_x = User.get_user_by_login(cursor, login)
+    if user_x:
+        logging.write('Пользователь %s найден:' % login)
+        logging.write(user_x)
+        result = User.delete_user(cursor, user_x)
+        logging.write('Пользователь %s удалён. Строк изменено: %s' % (login, result))
+    else:
+        user_x = User(id=0, login=login, email='test@test.test', password='1', role='staffer')
+        user_x.id = User.create_user(cursor, user_x)
+        logging.write('Пользователь %s добавлен:' % login)
+        logging.write(user_x)
+
     # Поиск всех пользователей
-    logging.write('----------------\nВсе пользователи:')
     user_list = User.get_all_users(cursor)
+    logging.write('----------------\nВсего пользователей: %s' % len(user_list))
     for u in user_list:
         logging.write(u)
         current_user_chats_list = u.get_chat_list(cursor)
@@ -76,13 +106,9 @@ if __name__ == '__main__':
             logging.write(ch)
         logging.write('')
 
-    # Поиск пользователя по логину
-    login = 'admin'
-    logging.write('----------------\nПользователь %s:' % login)
-    user_admin = User.get_user_by_login(cursor, login)
-    logging.write(user_admin)
-
     # Поиск списка чатов пользователя
+    login = 'admin'
+    user_admin = User.get_user_by_login(cursor, login)
     logging.write('Список чатов пользователя %s:' % login)
     admin_chat_list = user_admin.get_chat_list(cursor)
     for chat in admin_chat_list:
@@ -107,4 +133,5 @@ if __name__ == '__main__':
     logging.write(user_nonsense)
 
     cursor.close()
+    db.commit()
     db.close()

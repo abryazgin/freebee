@@ -33,7 +33,6 @@ class Chat:
                 time=mess['SEND_TIME'],
                 text=mess['MESS_TEXT'],
                 sender=user_sender))
-
         return message_list
 
     def get_last_messages(self, conn, mess_count):
