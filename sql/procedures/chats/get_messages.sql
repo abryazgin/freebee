@@ -35,7 +35,7 @@ BEGIN
             M.MESSAGE_ID,
             M.SEND_TIME,
             M.MESS_TEXT,
-            U.LOGIN
+            U.USER_ID
         FROM
             message as M
             JOIN user_in_chat as UCH

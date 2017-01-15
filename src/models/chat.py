@@ -31,7 +31,7 @@ class Chat:
         # return [message.Message(*m) for m in messages]
 
     def get_last_messages(self, conn, mess_count):
-        messages = db_worker.execute(conn, 'CALL GET_LAST_MESSAGES(%s)', (self.id, mess_count))
+        messages = db_worker.execute(conn, 'CALL GET_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
         message_list = []
         for mess in messages:
             id, time, text, user_id = mess
@@ -45,13 +45,17 @@ if __name__ == '__main__':
     db = db_worker.get_db()
     cursor = db.cursor()
 
-    # Поиск всех чатов
+    # Поиск всех чатов, всех сообщений в каждом чате и последнего сообщения в каждом чате
     chat_list = Chat.get_all_chats(cursor)
     for ch in chat_list:
         logging.write(ch)
         logging.write('Список сообщений:')
         mess_list = ch.get_all_messages(cursor)
         for mess in mess_list:
+            logging.write(mess)
+        logging.write('Последнее сообщение:')
+        last_mess = ch.get_last_messages(cursor, 1)
+        for mess in last_mess:
             logging.write(mess)
         logging.write('')
 
