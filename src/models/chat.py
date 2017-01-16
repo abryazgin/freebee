@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import db_worker
-import logging
+import mylogging
 import message
 import user
 
@@ -57,16 +57,16 @@ if __name__ == '__main__':
     # Поиск всех чатов, всех сообщений в каждом чате и последнего сообщения в каждом чате
     chat_list = Chat.get_all_chats(cursor)
     for ch in chat_list:
-        logging.write(ch)
-        logging.write('Список сообщений:')
+        mylogging.write(ch)
+        mylogging.write('Список сообщений:')
         mess_list = ch.get_all_messages(cursor)
         for mess in mess_list:
-            logging.write(mess)
-        logging.write('Последнее сообщение:')
+            mylogging.write(mess)
+        mylogging.write('Последнее сообщение:')
         last_mess = ch.get_last_messages(cursor, 1)
         for mess in last_mess:
-            logging.write(mess)
-        logging.write('')
+            mylogging.write(mess)
+        mylogging.write('')
 
     cursor.close()
     db.close()

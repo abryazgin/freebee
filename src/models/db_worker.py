@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import mysql.connector
-import logging
+# import mylogging
 
 
 def _execute(conn, sql_query, sql_args=None):
-    # logging.write(sql_query)
+    # mylogging.write(sql_query)
     # return [rows.fetchall() for rows in conn.execute(sql_query, sql_args, multi=True) if rows.with_rows]
     return conn.execute(sql_query, sql_args, multi=True)
 
