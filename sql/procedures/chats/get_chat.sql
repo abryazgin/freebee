@@ -12,4 +12,5 @@ BEGIN
         FROM
             chat as CH;
 END
+
 $$

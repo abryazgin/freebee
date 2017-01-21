@@ -1,13 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+from os import pread
 
-import db_worker
-import mylogging
-import chat
+from models import db_worker
+from models import message
 
 
 class User:
-    def __init__(self, id, login, email, role, password):
+    ADMIN = 'admin'
+    STAFFER = 'staffer'
+    CLIENT = 'client'
+
+    def __init__(self, login, email, role, password, id=None):
         self.id = id
         self.login = login
         self.email = email
@@ -20,7 +22,10 @@ class User:
 
     @staticmethod
     def get_all_users(conn):
-        users = db_worker.execute(conn, 'CALL GET_ALL_USERS()')
+        """
+        :return: list, содержащий всех пользователей, полученных из бд.
+        """
+        users = db_worker.select_list(conn, 'CALL GET_ALL_USERS()')
         return [User(id=u['USER_ID'],
                      login=u['LOGIN'],
                      email=u['EMAIL'],
@@ -30,11 +35,14 @@ class User:
 
     @staticmethod
     def get_user_by_id(conn, id):
-        u = db_worker.execute(conn, 'CALL GET_USER_BY_ID(%s)', (id,))
-        if len(u) == 0:
-            mylogging.write('Пользователя № %s не существует!' % id)
-            return None
-        u = u[0]
+        """
+        :exception: db_worker.DBException, если пользователь с указанным id несуществует
+        """
+        u = db_worker.select_obj(conn, 'CALL GET_USER_BY_ID(%s)', (id,))
+        if not u:
+            raise db_worker.DBException('Пользователь с id = {0} не существует.'.format(id))
+            # выбрасываем исключение здесь, а не в db_worker, чтобы показать более информативное сообщение
+            # (db_worker не знает, какой был запрос)
         return User(id=u['USER_ID'],
                     login=u['LOGIN'],
                     email=u['EMAIL'],
@@ -43,11 +51,14 @@ class User:
 
     @staticmethod
     def get_user_by_login(conn, log):
-        u = db_worker.execute(conn, 'CALL GET_USER_BY_LOGIN(%s)', (log,))
-        if len(u) == 0:
-            mylogging.write('Пользователя %s не существует!' % log)
-            return None
-        u = u[0]
+        """
+        :exception: db_worker.DBException, если пользователь с указанным логином несуществует
+        """
+        u = db_worker.select_obj(conn, 'CALL GET_USER_BY_LOGIN(%s)', (log,))
+        if not u:
+            raise db_worker.DBException('Пользователь с login = {0} не существует.'.format(log))
+            # выбрасываем исключение здесь, а не в db_worker, чтобы показать более информативное сообщение
+            # (db_worker не знает, какой был запрос)
         return User(id=u['USER_ID'],
                     login=u['LOGIN'],
                     email=u['EMAIL'],
@@ -55,84 +66,131 @@ class User:
                     role=u['ROLE'])
 
     def get_chat_list(self, conn):
-        chats = db_worker.execute(conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
-        return [chat.Chat(id=ch['CHAT_ID'],
-                          name=ch['NAME'])
+        """
+        :return: list, содержащий все чаты, в которых устаствует данный пользователь.
+        """
+        chats = db_worker.select_list(conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
+        return [Chat(id=ch['CHAT_ID'],
+                     name=ch['NAME']
+                     )
                 for ch in chats]
 
-    @staticmethod
-    def create_user(conn, u):
-        result = db_worker.execute(conn,
+    def get_messages(self, conn):
+        """
+        :return: list, содержащий все сообщения, отправленные данным пользователем.
+        """
+        message_list = db_worker.select_list(conn, 'CALL GET_USER_MESSAGES(%s)', (self.id,))
+        return [message.Message(id=msg['MESSAGE_ID'],
+                                text=msg['MESS_TEXT'],
+                                time=msg['SEND_TIME'],
+                                chat=Chat(id=msg['CHAT_ID'],
+                                          name=msg['CHAT_NAME']),
+                                sender=self
+                                )
+                for msg in message_list]
+
+    def get_last_messages(self, conn, mess_count):
+        """
+        :return: list, содержащий последние mess_count сообщений, отправленных данным пользователем.
+        """
+        message_list = db_worker.select_list(conn, 'CALL GET_USER_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
+        return [message.Message(id=msg['MESSAGE_ID'],
+                                text=msg['MESS_TEXT'],
+                                time=msg['SEND_TIME'],
+                                chat=Chat(id=msg['CHAT_ID'],
+                                          name=msg['CHAT_NAME']),
+                                sender=self
+                                )
+                for msg in message_list]
+
+    def create(self, conn):
+        """
+        Выполняет сохранение данного пользователя в бд и присвает ему id.
+        :exception: db_worker.DBException, если в базе есть пользователь с указанным логином или id.
+        """
+        self.id = db_worker.insert(conn,
                                    'CALL CREATE_USER(%s, %s, %s, %s)',
-                                   (u.login, u.email, u.password, u.role)
+                                   (self.login, self.email, self.password, self.role)
                                    )
-        result = result[0]
-        return result['NEW_ID']
 
     @staticmethod
     def delete_user(conn, u):
-        return db_worker.change(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
+        """
+        Удаляет данного пользователя из бд.
+        :exception: db_worker.DBException, если пользователь не сохранён в базе.
+        :return: Количество изменённых в бд строк.
+        """
+        return db_worker.delete(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
+
+
+class Chat:
+    def __init__(self, name, id=None):
+        self.id = id
+        self.name = name
+
+    def __str__(self):
+        return 'id = {0}, name = {1}'.format(self.id, self.name)
+
+    @staticmethod
+    def get_all_chats(conn):
+        """
+        :return: list, содержащий все чаты
+        """
+        chats = db_worker.select_list(conn, 'CALL GET_CHATS()')
+        return [Chat(id=ch['CHAT_ID'],
+                     name=ch['NAME'])
+                for ch in chats]
+
+    def get_all_messages(self, conn):
+        """
+        :return: list, содержащий все сообщения данного чата
+        """
+        message_list = db_worker.select_list(conn, 'CALL GET_CHAT_MESSAGES(%s)', (self.id,))
+        result = []
+        for mess in message_list:
+            user_id = mess['USER_ID']
+            user_sender = User.get_user_by_id(conn, user_id)
+            result.append(message.Message(id=mess['MESSAGE_ID'],
+                                          time=mess['SEND_TIME'],
+                                          text=mess['MESS_TEXT'],
+                                          sender=user_sender,
+                                          chat=self))
+        return result
+
+    def get_last_messages(self, conn, mess_count):
+        """
+        :return: list, содержащий mess_count последних сообщений данного чата
+        """
+        message_list = db_worker.select_list(conn, 'CALL GET_LAST_CHAT_MESSAGES(%s, %s)', (self.id, mess_count))
+        result = []
+        for mess in message_list:
+            user_id = mess['USER_ID']
+            user_sender = User.get_user_by_id(conn, user_id)
+            result.append(message.Message(id=mess['MESSAGE_ID'],
+                                          time=mess['SEND_TIME'],
+                                          text=mess['MESS_TEXT'],
+                                          sender=user_sender,
+                                          chat=self))
+        return result
+
+    def get_user_list(self, conn):
+        """
+        :return:
+        """
+        user_list = db_worker.select_list(conn, 'CALL GET_CHAT_USERS(%s)', (self.id,))
+        return [User(id=u['USER_ID'],
+                     login=u['LOGIN'],
+                     email=u['EMAIL'],
+                     password=u['PASSWORD'],
+                     role=u['ROLE']
+                     )
+                for u in user_list]
 
 
 if __name__ == '__main__':
     db = db_worker.get_db()
     cursor = db.cursor(dictionary=True)
 
-    # Поиск пользователя по логину:
-    # - если пользователь с указанным логином не найден, он добавляется в базу;
-    # - если найден - удаляется из базы.
-    login = 'user_x'
-    mylogging.write('----------------\nПользователь %s:' % login)
-    user_x = User.get_user_by_login(cursor, login)
-    if user_x:
-        mylogging.write('Пользователь %s найден:' % login)
-        mylogging.write(user_x)
-        result = User.delete_user(cursor, user_x)
-        mylogging.write('Пользователь %s удалён. Строк изменено: %s' % (login, result))
-    else:
-        user_x = User(id=0, login=login, email='test@test.test', password='1', role='staffer')
-        user_x.id = User.create_user(cursor, user_x)
-        mylogging.write('Пользователь %s добавлен:' % login)
-        mylogging.write(user_x)
-
-
-    # Поиск всех пользователей
-    user_list = User.get_all_users(cursor)
-    mylogging.write('----------------\nВсего пользователей: %s' % len(user_list))
-    for u in user_list:
-        mylogging.write(u)
-        current_user_chats_list = u.get_chat_list(cursor)
-        mylogging.write('Список чатов %s:' % u.login)
-        for ch in current_user_chats_list:
-            mylogging.write(ch)
-        mylogging.write('')
-
-    # Поиск списка чатов пользователя
-    login = 'admin'
-    user_admin = User.get_user_by_login(cursor, login)
-    mylogging.write('Список чатов пользователя %s:' % login)
-    admin_chat_list = user_admin.get_chat_list(cursor)
-    for chat in admin_chat_list:
-        mylogging.write(chat)
-
-    # Поиск пользователя по id
-    id = 2
-    mylogging.write('----------------\nПользователь id = %s' % id)
-    user2 = User.get_user_by_id(cursor, id)
-    mylogging.write(user2)
-
-    # sql-инъекция
-    login = 'john\'); DROP database freebee;-- '
-    mylogging.write('----------------\nПользователь %s:' % login)
-    user_drop_table = User.get_user_by_login(cursor, login)
-    mylogging.write(user_drop_table)
-
-    # Поиск пользователя, отсутствующего в базе
-    login = 'dfghjskdlf'
-    mylogging.write('----------------\nПользователь %s:' % login)
-    user_nonsense = User.get_user_by_login(cursor, login)
-    mylogging.write(user_nonsense)
-
     cursor.close()
-    db.commit()
     db.close()
+    pass
