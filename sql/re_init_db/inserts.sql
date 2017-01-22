@@ -57,4 +57,12 @@ INSERT INTO message (USER_IN_CHAT_ID, SEND_TIME, MESS_TEXT) VALUES
     AND
     CHAT_ID = (SELECT CHAT_ID FROM chat WHERE chat.NAME = 'support-1')),
     '2017-01-05 16:17:10',
-    'Чем могу помочь?');
+    'Чем могу помочь?'),
+     
+    ((SELECT USER_IN_CHAT_ID FROM user_in_chat
+    WHERE
+    USER_ID = (SELECT USER_ID FROM user WHERE user.LOGIN = 'mike')
+    AND
+    CHAT_ID = (SELECT CHAT_ID FROM chat WHERE chat.NAME = 'order-1')),
+    '2017-01-05 14:12:25',
+    'Привет!');

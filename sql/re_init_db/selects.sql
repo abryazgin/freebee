@@ -33,6 +33,4 @@ SELECT
         JOIN user 
             ON user.USER_ID = user_in_chat.USER_ID
         JOIN chat 
-            ON chat.CHAT_ID = user_in_chat.CHAT_ID
-    WHERE 
-        TRUE;
+            ON chat.CHAT_ID = user_in_chat.CHAT_ID;

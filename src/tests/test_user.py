@@ -35,9 +35,9 @@ class TestUser(unittest.TestCase):
         user_list = user.User.get_all_users(self.cursor)
         self.assertEqual(6, len(user_list))
 
-    def test_double_user_login(self):
-        new_user = user.User(login='admin',
-                             email='dtfyguhijokm',
+    def test_user_create_not_unique(self):
+        new_user = user.User(login='dtfyguhijokm',
+                             email='smth1@ex.com',
                              password='skip',
                              role=user.User.CLIENT
                              )
@@ -45,10 +45,8 @@ class TestUser(unittest.TestCase):
                           new_user.create,
                           self.cursor
                           )
-
-    def test_double_user_email(self):
-        new_user = user.User(login='dtfyguhijokm',
-                             email='smth1@ex.com',
+        new_user = user.User(login='admin',
+                             email='dtfyguhijokm',
                              password='skip',
                              role=user.User.CLIENT
                              )
@@ -95,6 +93,22 @@ class TestUser(unittest.TestCase):
         messcnt = 1
         messages_list = u.get_last_messages(self.cursor, messcnt)
         self.assertEqual(messcnt, len(messages_list))
+
+    def test_user_update_not_unique(self):
+        u = user.User(id=1,
+                      login='admin',
+                      email='smth1@ex.com',
+                      password='admpass',
+                      role=user.User.ADMIN)
+        self.assertRaises(db_worker.DBException,
+                          u.update,
+                          conn = self.cursor,
+                          login='paul')
+        self.assertRaises(db_worker.DBException,
+                          u.update,
+                          conn = self.cursor,
+                          email='smth2@ex.com')
+
 
     # bdd test
     @unittest.skip('not implemented yet')

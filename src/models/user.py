@@ -1,7 +1,4 @@
-from os import pread
-
 from models import db_worker
-from models import message
 
 
 class User:
@@ -80,7 +77,7 @@ class User:
         :return: list, содержащий все сообщения, отправленные данным пользователем.
         """
         message_list = db_worker.select_list(conn, 'CALL GET_USER_MESSAGES(%s)', (self.id,))
-        return [message.Message(id=msg['MESSAGE_ID'],
+        return [Message(id=msg['MESSAGE_ID'],
                                 text=msg['MESS_TEXT'],
                                 time=msg['SEND_TIME'],
                                 chat=Chat(id=msg['CHAT_ID'],
@@ -94,7 +91,7 @@ class User:
         :return: list, содержащий последние mess_count сообщений, отправленных данным пользователем.
         """
         message_list = db_worker.select_list(conn, 'CALL GET_USER_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
-        return [message.Message(id=msg['MESSAGE_ID'],
+        return [Message(id=msg['MESSAGE_ID'],
                                 text=msg['MESS_TEXT'],
                                 time=msg['SEND_TIME'],
                                 chat=Chat(id=msg['CHAT_ID'],
@@ -113,8 +110,30 @@ class User:
                                    (self.login, self.email, self.password, self.role)
                                    )
 
+    def update(self, conn, login=None, email=None, password=None, role=None):
+        """
+        Обновляет данные о пользователе в бд.
+        :exception: db_worker.DBException, если новые данные некорректны или пользователь не сохранён в бд.
+        :return: Количество изменённых в бд строк.
+        """
+        # TODO есть ли более элегантный способ проверки параметров?
+        login = login if login else self.login
+        email = email if email else self.email
+        password = password if password else self.password
+        role = role if role else self.role
+
+        result = db_worker.update(conn, 'CALL UPDATE_USER(%s, %s, %s, %s, %s)',
+                                (self.id, login, email, password, role))
+
+        self.login = login
+        self.email = email
+        self.password = password
+        self.role = role
+        return result
+
+
     @staticmethod
-    def delete_user(conn, u):
+    def delete(conn, u):
         """
         Удаляет данного пользователя из бд.
         :exception: db_worker.DBException, если пользователь не сохранён в базе.
@@ -150,7 +169,7 @@ class Chat:
         for mess in message_list:
             user_id = mess['USER_ID']
             user_sender = User.get_user_by_id(conn, user_id)
-            result.append(message.Message(id=mess['MESSAGE_ID'],
+            result.append(Message(id=mess['MESSAGE_ID'],
                                           time=mess['SEND_TIME'],
                                           text=mess['MESS_TEXT'],
                                           sender=user_sender,
@@ -186,6 +205,101 @@ class Chat:
                      )
                 for u in user_list]
 
+    def create(self, conn):
+        """
+        Выполняет сохранение данного чата в бд и присвает ему id.
+        """
+        self.id = db_worker.insert(conn, 'CALL CREATE_CHAT(%s)', (self.name,))
+
+    @staticmethod
+    def delete(conn, ch):
+        """
+        Удаляет данный чат из бд.
+        :exception: db_worker.DBException, если чат не сохранён в базе.
+        :return: Количество изменённых в бд строк.
+        """
+        return db_worker.delete(conn, 'CALL DELETE_CHAT_BY_ID(%s)', (ch.id,))
+
+    def update(self, conn, name):
+        """
+        Обновляет данные о чате в бд.
+        :exception: db_worker.DBException, если чат не сохранён в бд.
+        :return: Количество изменённых в бд строк.
+        """
+        result = db_worker.update(conn, 'CALL UPDATE_CHAT(%s, %s)', self.id, name)
+        self.name = name
+        return result
+
+    def add_user(self, conn, us):
+        """
+        Добавляет пользователя в чат.
+        :exception: db_worker.DBException, если чат/пользователь не сохранены в бд
+                    или пользователь уже добавлен в чат.
+        :return: Количество изменённых в бд строк.
+        """
+        return db_worker.update(conn, 'CALL ADD_USER_IN_CHAT(%s, %s)', (self.id, us.id))
+
+    def remove_user(self, conn, us):
+        """
+        Удаляет пользователя из чат.
+        :exception: db_worker.DBException, если чат/пользователь не сохранены в бд
+                    или пользователь не входит в чат.
+        :return: Количество изменённых в бд строк.
+        """
+        return db_worker.update(conn, 'CALL REMOVE_USER_FROM_CHAT(%s, %s)', (us.id, self.id))
+
+
+class Message:
+    def __init__(self, time, text, sender, chat, id=None):
+        self.id = id
+        self.sender = sender
+        self.time = time
+        self.text = text
+        self.chat = chat
+
+    def __str__(self):
+        return ('id = {0}, sender.login = {1}, chat.name = {2}, ' +
+                'time = {3}, text = {4}').format(
+                self.id, self.sender.login, self.chat.name,
+                self.time, self.text)
+
+    def create(self, conn):
+        """
+        Выполняет сохранение данного чата в бд и присвает ему id.
+        """
+        self.id = db_worker.insert(conn, 'CALL CREATE_MESSAGE(%s, %s, %s, %s)',
+                                   (self.sender.id, self.chat.id, self.time, self.text))
+
+    @staticmethod
+    def delete(conn, mess):
+        """
+        Удаляет сообщение из бд.
+        :exception: db_worker.DBException, если сообщение не сохранено в базе.
+        :return: Количество изменённых в бд строк.
+        """
+        return db_worker.delete(conn, 'CALL DELETE_MESSAGE_BY_ID(%s)', (mess.id,))
+
+    def update(self, conn, sender=None, chat=None, time=None, text=None):
+        """
+        Обновляет данные о сообщение в бд.
+        :exception: db_worker.DBException, если новые данные некорректны или сообщение не сохранено в бд.
+        :return: Количество изменённых в бд строк.
+        """
+        # TODO есть ли более элегантный способ проверки параметров?
+        sender = sender if sender else self.sender
+        chat = chat if chat else self.chat
+        time = time if time else self.time
+        text = text if text else self.text
+
+        result = db_worker.update(conn, 'CALL UPDATE_MESSAGE(%s, %s, %s, %s, %s)',
+                                (self.id, sender.id, chat.id, time, text))
+
+        self.sender = sender
+        self.chat = chat
+        self.time = time
+        self.text = text
+        return result
+
 
 if __name__ == '__main__':
     db = db_worker.get_db()
@@ -193,4 +307,3 @@ if __name__ == '__main__':
 
     cursor.close()
     db.close()
-    pass
