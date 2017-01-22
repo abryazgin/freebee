@@ -185,7 +185,7 @@ class Chat:
         for mess in message_list:
             user_id = mess['USER_ID']
             user_sender = User.get_user_by_id(conn, user_id)
-            result.append(message.Message(id=mess['MESSAGE_ID'],
+            result.append(Message(id=mess['MESSAGE_ID'],
                                           time=mess['SEND_TIME'],
                                           text=mess['MESS_TEXT'],
                                           sender=user_sender,
@@ -194,7 +194,7 @@ class Chat:
 
     def get_user_list(self, conn):
         """
-        :return:
+        :return: list, содержащий всех пользователей в данном чате.
         """
         user_list = db_worker.select_list(conn, 'CALL GET_CHAT_USERS(%s)', (self.id,))
         return [User(id=u['USER_ID'],
