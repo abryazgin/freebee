@@ -5,3 +5,4 @@ Jinja2==2.9.4
 MarkupSafe==0.23
 mysql-connector==2.1.4
 Werkzeug==0.11.15
+behave==1.2.5
