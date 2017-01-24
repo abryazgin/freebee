@@ -3,6 +3,7 @@ from behave import given, when, then, step
 from models import user
 from models import db_worker
 
+
 @given('we have behave installed')
 def step_impl(context):
     pass

@@ -13,10 +13,12 @@ class SqlResult:
         """
         :param result: содержит результат последнего SELECT в процедуре SQL
         :param rescode: 1 - для процедур, завершившихся успешно;
-                        0 - для процедур, в которые переданы некорректные параметры;
+                        0 - для процедур, в которые переданы некорректные
+                            параметры;
                         None - для процедур, осуществляющих чтение из бд
         :param rowcnt: кол-во изменённых строк
-        :param errormsg: если rescode = 0, представляет сообщение об ошибке в процедуре SQL
+        :param errormsg: если rescode = 0, представляет сообщение
+                         об ошибке в процедуре SQL
         """
         self.result = result
         self.rescode = rescode
@@ -34,7 +36,9 @@ def _execute(conn, sql_query, sql_args=None):
 
 def execute(conn, sql_query, sql_args=None):
     """
-    Выполняет запрос к бд и предоставляет результат в форме экземпляра SqlResult.
+    Выполняет запрос к бд и предоставляет результат
+    в форме экземпляра SqlResult.
+
     Не для внешнего использования.
     :param conn: объект mysql.connector.connect
     """
@@ -84,7 +88,8 @@ def select_obj(conn, sql_query, sql_args=None):
 def insert(conn, sql_query, sql_args=None):
     """
     Выполняет запрос к бд, предполагающий вставку новой строки.
-    Возвращает LAST_INSERT_ID() в случае успеха, иначе - возбуждает исключение DBException
+    Возвращает LAST_INSERT_ID() в случае успеха,
+    иначе - возбуждает исключение DBException
     """
     res = execute(conn, sql_query, sql_args).result
     # не проверяем размер res, т.к. процедура всегда должна выполнять SELECT:
@@ -97,7 +102,8 @@ def insert(conn, sql_query, sql_args=None):
 def delete(conn, sql_query, sql_args=None):
     """
     Выполняет запрос к бд, предполагающий вставку новой строки.
-    Возвращает кол-во изменённых строк в случае успеха, иначе - возбуждает исключение DBException.
+    Возвращает кол-во изменённых строк в случае успеха,
+    иначе - возбуждает исключение DBException.
     """
     res = execute(conn, sql_query, sql_args).rowcnt
     return res
@@ -106,7 +112,8 @@ def delete(conn, sql_query, sql_args=None):
 def update(conn, sql_query, sql_args=None):
     """
     Выполняет запрос к бд, предполагающий вставку новой строки.
-    Возвращает кол-во изменённых строк в случае успеха, иначе - возбуждает исключение DBException.
+    Возвращает кол-во изменённых строк в случае успеха,
+    иначе - возбуждает исключение DBException.
     """
     res = execute(conn, sql_query, sql_args).rowcnt
     return res

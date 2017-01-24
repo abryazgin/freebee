@@ -4,9 +4,10 @@ from models import db_worker
 
 
 class TestUser(unittest.TestCase):
-    #TODO продумать автоматическую инициализацию тестовых данных
+    # TODO продумать автоматическую инициализацию тестовых данных
     """
-    Тесты корректно работают только на данных, формируемыми скриптами из sql/re_init_db
+    Тесты корректно работают только на данных,
+    формируемых скриптами из sql/re_init_db
     """
     def setUp(self):
         self.db = db_worker.get_db()
@@ -102,13 +103,12 @@ class TestUser(unittest.TestCase):
                       role=user.User.ADMIN)
         self.assertRaises(db_worker.DBException,
                           u.update,
-                          conn = self.cursor,
+                          conn=self.cursor,
                           login='paul')
         self.assertRaises(db_worker.DBException,
                           u.update,
-                          conn = self.cursor,
+                          conn=self.cursor,
                           email='smth2@ex.com')
-
 
     # bdd test
     @unittest.skip('not implemented yet')
