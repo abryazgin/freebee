@@ -1,5 +1,5 @@
 import inspect
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, session, escape
 from src.models.user import User
 
 
@@ -7,7 +7,7 @@ class ChatController(object):
 
     def __init__(self, cursor):
         self.cursor = cursor
-        self.username = request.args.get('login')
+        self.username = str(escape(session.get('login')))
         if self.username:
             self.user = User.get_user_by_login(self.cursor, self.username)
 
