@@ -4,7 +4,7 @@
 from flask import Flask, g
 from . import config
 import logging
-from logging.handlers import RotatingFileHandler
+from src.core.logging import GzRotatingFileHandler
 
 
 app = Flask(__name__)
@@ -17,7 +17,7 @@ app.secret_key = app.config['SECRET_KEY']
 # ######## logging ##########
 
 formatter = logging.Formatter(app.config['LOG_FORMAT'])
-handler = RotatingFileHandler(**app.config['LOG_HANDLER'])
+handler = GzRotatingFileHandler(**app.config['LOG_HANDLER'])
 handler.setFormatter(formatter)
 app.logger.addHandler(handler)
 app.logger.setLevel(logging.INFO)

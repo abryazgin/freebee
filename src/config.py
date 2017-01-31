@@ -12,9 +12,11 @@ SECRET_KEY = '3656i6645fhn56687nch65fdswfbvd'
 
 # logging
 
+LOG_DIR = '/home/daniil/howork/freebee_log'
+LOG_FILE = 'foo.log'
 LOG_FORMAT = '%(name)s-%(levelno)s %(asctime)-15s : %(message)s'
 LOG_HANDLER = {
-    'filename': 'foo.log',
+    'filename': os.path.join(LOG_DIR, LOG_FILE),
     'maxBytes': 100000,
     'backupCount': 6
 }
