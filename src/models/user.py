@@ -1,6 +1,6 @@
-from . import db_worker
-from . import chat
-from . import message
+import db_worker
+import chat
+import message
 
 
 class User:

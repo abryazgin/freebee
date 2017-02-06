@@ -1,5 +1,5 @@
-from . import db_worker
-from . import user
+import db_worker
+import user
 
 
 class Chat:
