@@ -1,4 +1,4 @@
-from . import db_worker
+import db_worker
 
 
 class User:
@@ -6,17 +6,18 @@ class User:
     STAFFER = 'staffer'
     CLIENT = 'client'
 
-    def __init__(self, login, email, role, password, id=None):
+    def __init__(self, login, email, role, password, id=None, enable=True):
         self.id = id
         self.login = login
         self.email = email
         self.password = password
         self.role = role
+        self.enable = enable
 
     def __str__(self):
         return ('id = {0},\tlogin = {1},\temail = {2},\t' +
-                'password = {3},\trole = {4}').format(
-                self.id, self.login, self.email, self.password, self.role)
+                'password = {3},\trole = {4},\tenable={5}').format(
+                self.id, self.login, self.email, self.password, self.role, self.enable)
 
     @staticmethod
     def get_all_users(conn):
@@ -28,7 +29,8 @@ class User:
                      login=u['LOGIN'],
                      email=u['EMAIL'],
                      password=u['PASSWORD'],
-                     role=u['ROLE'])
+                     role=u['ROLE'],
+                     enable=u['ENABLE'])
                 for u in users]
 
     @staticmethod
@@ -37,7 +39,9 @@ class User:
         :exception: db_worker.DBException,
                     если пользователь с указанным id несуществует
         """
-        u = db_worker.select_obj(conn, 'CALL GET_USER_BY_ID(%s)', (id,))
+        u = db_worker.select_obj(conn,
+                                 'CALL GET_USER_BY_ID(%s)',
+                                 (id,))
         if not u:
             # выбрасываем исключение здесь, а не в db_worker,
             # чтобы показать более информативное сообщение
@@ -49,7 +53,8 @@ class User:
                     login=u['LOGIN'],
                     email=u['EMAIL'],
                     password=u['PASSWORD'],
-                    role=u['ROLE'])
+                    role=u['ROLE'],
+                    enable=u['ENABLE'])
 
     @staticmethod
     def get_user_by_login(conn, log):
@@ -57,7 +62,9 @@ class User:
         :exception: db_worker.DBException,
                     если пользователь с указанным логином несуществует
         """
-        u = db_worker.select_obj(conn, 'CALL GET_USER_BY_LOGIN(%s)', (log,))
+        u = db_worker.select_obj(conn,
+                                 'CALL GET_USER_BY_LOGIN(%s)',
+                                 (log,))
         if not u:
             # выбрасываем исключение здесь, а не в db_worker,
             # чтобы показать более информативное сообщение
@@ -69,18 +76,20 @@ class User:
                     login=u['LOGIN'],
                     email=u['EMAIL'],
                     password=u['PASSWORD'],
-                    role=u['ROLE'])
+                    role=u['ROLE'],
+                    enable=u['ENABLE'])
 
     def get_chat_list(self, conn):
         """
         :return: list, содержащий все чаты, в которых
                  участвует данный пользователь.
         """
-        chats = db_worker.select_list(
-            conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
+        chats = db_worker.select_list(conn,
+                                      'CALL GET_CHAT_LIST_BY_USER_ID(%s)',
+                                      (self.id,))
         return [Chat(id=ch['CHAT_ID'],
-                     name=ch['NAME']
-                     )
+                     name=ch['NAME'],
+                     enable=ch['ENABLE'])
                 for ch in chats]
 
     def get_messages(self, conn):
@@ -88,14 +97,16 @@ class User:
         :return: list, содержащий все сообщения,
                  отправленные данным пользователем.
         """
-        message_list = db_worker.select_list(
-            conn, 'CALL GET_USER_MESSAGES(%s)', (self.id,))
+        message_list = db_worker.select_list(conn,
+                                             'CALL GET_USER_MESSAGES(%s)',
+                                             (self.id,))
         return [Message(id=msg['MESSAGE_ID'],
                         text=msg['MESS_TEXT'],
                         time=msg['SEND_TIME'],
                         chat=Chat(id=msg['CHAT_ID'],
                                   name=msg['CHAT_NAME']),
-                        sender=self)
+                        sender=self,
+                        enable=msg['ENABLE'])
                 for msg in message_list]
 
     def get_last_messages(self, conn, mess_count):
@@ -103,14 +114,16 @@ class User:
         :return: list, содержащий последние mess_count сообщений,
                  отправленных данным пользователем.
         """
-        message_list = db_worker.select_list(
-            conn, 'CALL GET_USER_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
+        message_list = db_worker.select_list(conn,
+                                             'CALL GET_USER_LAST_MESSAGES(%s, %s)',
+                                             (self.id, mess_count))
         return [Message(id=msg['MESSAGE_ID'],
                         text=msg['MESS_TEXT'],
                         time=msg['SEND_TIME'],
                         chat=Chat(id=msg['CHAT_ID'],
                                   name=msg['CHAT_NAME']),
-                        sender=self)
+                        sender=self,
+                        enable=msg['ENABLE'])
                 for msg in message_list]
 
     def create(self, conn):
@@ -119,12 +132,11 @@ class User:
         :exception: db_worker.DBException,
                     если в базе есть пользователь с указанным логином или id.
         """
-        self.id = db_worker.insert(
-            conn,
-            'CALL CREATE_USER(%s, %s, %s, %s)',
-            (self.login, self.email, self.password, self.role))
+        self.id = db_worker.insert(conn,
+                                   'CALL CREATE_USER(%s, %s, %s, %s)',
+                                   (self.login, self.email, self.password, self.role))
 
-    def update(self, conn, login=None, email=None, password=None, role=None):
+    def update(self, conn, login=None, email=None, password=None, role=None, enable=None):
         """
         Обновляет данные о пользователе в бд.
         :exception: db_worker.DBException,
@@ -137,15 +149,17 @@ class User:
         email = email if email else self.email
         password = password if password else self.password
         role = role if role else self.role
+        enable = enable if enable or enable == 0 else self.enable
 
         result = db_worker.update(conn,
-                                  'CALL UPDATE_USER(%s, %s, %s, %s, %s)',
-                                  (self.id, login, email, password, role))
+                                  'CALL UPDATE_USER(%s, %s, %s, %s, %s, %s)',
+                                  (self.id, login, email, password, role, enable))
 
         self.login = login
         self.email = email
         self.password = password
         self.role = role
+        self.enable = enable
         return result
 
     @staticmethod
@@ -156,33 +170,39 @@ class User:
                     если пользователь не сохранён в базе.
         :return: Количество изменённых в бд строк.
         """
-        return db_worker.delete(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
+        return db_worker.delete(conn,
+                                'CALL DELETE_USER_BY_ID(%s)',
+                                (u.id,))
 
 
 class Chat:
-    def __init__(self, name, id=None):
+    def __init__(self, name, id=None, enable=True):
         self.id = id
         self.name = name
+        self.enable = enable
 
     def __str__(self):
-        return 'id = {0}, name = {1}'.format(self.id, self.name)
+        return 'id = {0}, name = {1}, enable={2}'.format(self.id, self.name, self.enable)
 
     @staticmethod
     def get_all_chats(conn):
         """
         :return: list, содержащий все чаты
         """
-        chats = db_worker.select_list(conn, 'CALL GET_CHATS()')
+        chats = db_worker.select_list(conn,
+                                      'CALL GET_CHATS()')
         return [Chat(id=ch['CHAT_ID'],
-                     name=ch['NAME'])
+                     name=ch['NAME'],
+                     enable=ch['ENABLE'])
                 for ch in chats]
 
     def get_all_messages(self, conn):
         """
         :return: list, содержащий все сообщения данного чата
         """
-        message_list = db_worker.select_list(
-            conn, 'CALL GET_CHAT_MESSAGES(%s)', (self.id,))
+        message_list = db_worker.select_list(conn,
+                                             'CALL GET_CHAT_MESSAGES(%s)',
+                                             (self.id,))
         result = []
         for mess in message_list:
             user_id = mess['USER_ID']
@@ -191,15 +211,17 @@ class Chat:
                                   time=mess['SEND_TIME'],
                                   text=mess['MESS_TEXT'],
                                   sender=user_sender,
-                                  chat=self))
+                                  chat=self,
+                                  enable=mess['ENABLE']))
         return result
 
     def get_last_messages(self, conn, mess_count):
         """
         :return: list, содержащий mess_count последних сообщений данного чата
         """
-        message_list = db_worker.select_list(
-            conn, 'CALL GET_LAST_CHAT_MESSAGES(%s, %s)', (self.id, mess_count))
+        message_list = db_worker.select_list(conn,
+                                             'CALL GET_LAST_CHAT_MESSAGES(%s, %s)',
+                                             (self.id, mess_count))
         result = []
         for mess in message_list:
             user_id = mess['USER_ID']
@@ -208,28 +230,32 @@ class Chat:
                                   time=mess['SEND_TIME'],
                                   text=mess['MESS_TEXT'],
                                   sender=user_sender,
-                                  chat=self))
+                                  chat=self,
+                                  enable=mess['ENABLE']))
         return result
 
     def get_user_list(self, conn):
         """
         :return: list, содержащий всех пользователей в данном чате.
         """
-        user_list = db_worker.select_list(
-            conn, 'CALL GET_CHAT_USERS(%s)', (self.id,))
+        user_list = db_worker.select_list(conn,
+                                          'CALL GET_CHAT_USERS(%s)',
+                                          (self.id,))
         return [User(id=u['USER_ID'],
                      login=u['LOGIN'],
                      email=u['EMAIL'],
                      password=u['PASSWORD'],
-                     role=u['ROLE']
-                     )
+                     role=u['ROLE'],
+                     enable=u['ENABLE'])
                 for u in user_list]
 
     def create(self, conn):
         """
         Выполняет сохранение данного чата в бд и присвает ему id.
         """
-        self.id = db_worker.insert(conn, 'CALL CREATE_CHAT(%s)', (self.name,))
+        self.id = db_worker.insert(conn,
+                                   'CALL CREATE_CHAT(%s)',
+                                   (self.name,))
 
     @staticmethod
     def delete(conn, ch):
@@ -238,17 +264,25 @@ class Chat:
         :exception: db_worker.DBException, если чат не сохранён в базе.
         :return: Количество изменённых в бд строк.
         """
-        return db_worker.delete(conn, 'CALL DELETE_CHAT_BY_ID(%s)', (ch.id,))
+        return db_worker.delete(conn,
+                                'CALL DELETE_CHAT_BY_ID(%s)',
+                                (ch.id,))
 
-    def update(self, conn, name):
+    def update(self, conn, name=None, enable=None):
         """
         Обновляет данные о чате в бд.
         :exception: db_worker.DBException, если чат не сохранён в бд.
         :return: Количество изменённых в бд строк.
         """
-        result = db_worker.update(
-            conn, 'CALL UPDATE_CHAT(%s, %s)', (self.id, name))
+        name = name if name else self.name
+        enable = enable if enable or enable == 0 else self.enable
+
+        result = db_worker.update(conn,
+                                  'CALL UPDATE_CHAT(%s, %s, %s)',
+                                  (self.id, name, enable))
+
         self.name = name
+        self.enable = enable
         return result
 
     def add_user(self, conn, us):
@@ -259,8 +293,9 @@ class Chat:
                     или пользователь уже добавлен в чат.
         :return: Количество изменённых в бд строк.
         """
-        return db_worker.update(
-            conn, 'CALL ADD_USER_IN_CHAT(%s, %s)', (self.id, us.id))
+        return db_worker.update(conn,
+                                'CALL ADD_USER_IN_CHAT(%s, %s)',
+                                (self.id, us.id))
 
     def remove_user(self, conn, us):
         """
@@ -270,32 +305,46 @@ class Chat:
                     или пользователь не входит в чат.
         :return: Количество изменённых в бд строк.
         """
-        return db_worker.update(
-            conn, 'CALL REMOVE_USER_FROM_CHAT(%s, %s)', (us.id, self.id))
+        return db_worker.update(conn,
+                                'CALL REMOVE_USER_FROM_CHAT(%s, %s)',
+                                (us.id, self.id))
+
+    def chat_user_enable_edit(self, conn, us, enable):
+        """
+        Изменяет 'видимость' пользователя в чате
+        :exception: db_worker.DBException,
+                    если чат/пользователь не сохранены в бд
+                    или пользователь не входит в чат.
+        :return: Количество изменённых в бд строк.
+        """
+        result = db_worker.update(conn,
+                                  'CALL EDIT_USER_IN_CHAT_ENABLE(%s, %s, %s)',
+                                  (us.id, self.id, enable))
+        return result
 
 
 class Message:
-    def __init__(self, time, text, sender, chat, id=None):
+    def __init__(self, time, text, sender, chat, id=None, enable=True):
         self.id = id
         self.sender = sender
         self.time = time
         self.text = text
         self.chat = chat
+        self.enable = enable
 
     def __str__(self):
         return ('id = {0}, sender.login = {1}, chat.name = {2}, ' +
-                'time = {3}, text = {4}').format(
+                'time = {3}, text = {4}, enable = {5}').format(
                 self.id, self.sender.login, self.chat.name,
-                self.time, self.text)
+                self.time, self.text, self.enable)
 
     def create(self, conn):
         """
         Выполняет сохранение данного чата в бд и присвает ему id.
         """
-        self.id = db_worker.insert(
-            conn,
-            'CALL CREATE_MESSAGE(%s, %s, %s, %s)',
-            (self.sender.id, self.chat.id, self.time, self.text))
+        self.id = db_worker.insert(conn,
+                                   'CALL CREATE_MESSAGE(%s, %s, %s, %s)',
+                                   (self.sender.id, self.chat.id, self.time, self.text))
 
     @staticmethod
     def delete(conn, mess):
@@ -307,7 +356,7 @@ class Message:
         return db_worker.delete(
             conn, 'CALL DELETE_MESSAGE_BY_ID(%s)', (mess.id,))
 
-    def update(self, conn, sender=None, chat=None, time=None, text=None):
+    def update(self, conn, sender=None, chat=None, time=None, text=None, enable=None):
         """
         Обновляет данные о сообщение в бд.
         :exception: db_worker.DBException,
@@ -320,16 +369,17 @@ class Message:
         chat = chat if chat else self.chat
         time = time if time else self.time
         text = text if text else self.text
+        enable = enable if enable or enable == 0 else self.enable
 
-        result = db_worker.update(
-            conn,
-            'CALL UPDATE_MESSAGE(%s, %s, %s, %s, %s)',
-            (self.id, sender.id, chat.id, time, text))
+        result = db_worker.update(conn,
+                                  'CALL UPDATE_MESSAGE(%s, %s, %s, %s, %s)',
+                                  (self.id, sender.id, chat.id, time, text, enable))
 
         self.sender = sender
         self.chat = chat
         self.time = time
         self.text = text
+        self.enable = enable
         return result
 
 

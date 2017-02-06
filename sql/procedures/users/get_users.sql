@@ -11,7 +11,8 @@ BEGIN
             U.LOGIN,
             EMAIL,
             R.NAME as 'ROLE',
-            U.PASSWORD
+            U.PASSWORD,
+            U.ENABLE
         FROM
             user as U
             JOIN role as R 
@@ -30,7 +31,8 @@ BEGIN
             U.LOGIN,
             U.EMAIL,
             R.NAME as 'ROLE',
-            U.PASSWORD
+            U.PASSWORD,
+            U.ENABLE
         FROM
             user as U
             JOIN role as R
@@ -51,7 +53,8 @@ BEGIN
             U.LOGIN,
             U.EMAIL,
             R.NAME as 'ROLE',
-            U.PASSWORD
+            U.PASSWORD,
+            U.ENABLE
         FROM
             user as U
             JOIN role as R

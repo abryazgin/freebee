@@ -1,6 +1,4 @@
-#!/usr/bin/python3
-# -*- coding:utf-8 -*-
-
+import config
 import mysql.connector
 
 
@@ -123,9 +121,5 @@ def update(conn, sql_query, sql_args=None):
 
 
 def get_db():
-    db = mysql.connector.connect(host='localhost',
-                                 user='freebee',
-                                 passwd='221uml?Po',
-                                 db='freebee',
-                                 charset='utf8')
+    db = mysql.connector.connect(**config.DATABASE)
     return db

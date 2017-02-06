@@ -65,13 +65,15 @@ PROC : BEGIN
 END
 $$
 
+
 DROP PROCEDURE IF EXISTS UPDATE_MESSAGE $$
 CREATE PROCEDURE UPDATE_MESSAGE (
     IN vMESSAGE_ID INT,
     IN vUSER_ID INT,
     IN vCHAT_ID INT,
     IN vSEND_TIME DATETIME,
-    IN vMESS_TEXT TEXT
+    IN vMESS_TEXT TEXT,
+    IN vENABLE BOOL
 )
 COMMENT 'Изменяет параметры сообщения с id = vMESSAGE_ID'
 PROC : BEGIN
@@ -100,7 +102,8 @@ PROC : BEGIN
         SET
             M.USER_IN_CHAT_ID = @uchid,
             M.SEND_TIME = vSEND_TIME,
-            M.MESS_TEXT =vMESS_TEXT 
+            M.MESS_TEXT = vMESS_TEXT ,
+            M.ENABLE = vENABLE
         WHERE
             M.MESSAGE_ID = vMESSAGE_ID;
             

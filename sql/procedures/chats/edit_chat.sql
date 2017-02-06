@@ -61,7 +61,8 @@ $$
 DROP PROCEDURE IF EXISTS UPDATE_CHAT $$
 CREATE PROCEDURE UPDATE_CHAT (
     IN vCHAT_ID INT,
-    IN vNAME VARCHAR(255)
+    IN vNAME VARCHAR(255),
+    IN vENABLE BOOL
 )
 COMMENT 'Изменяет информацию о чате с id = vCHAT_ID'
 PROC : BEGIN
@@ -76,7 +77,8 @@ PROC : BEGIN
     
     UPDATE chat as CH
         SET
-            CH.NAME = vNAME
+            CH.NAME = vNAME,
+            CH.ENABLE = vENABLE
         WHERE
             CH.CHAT_ID = vCHAT_ID;
             
@@ -166,5 +168,46 @@ PROC : BEGIN
 END
 $$
 
-DELIMITER ;
+DROP PROCEDURE IF EXISTS EDIT_USER_IN_CHAT_ENABLE $$
+CREATE PROCEDURE EDIT_USER_IN_CHAT_ENABLE (
+    IN vUSER_ID INT,
+    IN vCHAT_ID INT,
+    IN vENABLE BOOL
+)
+COMMENT 'Изменяет аттрибут ENABLE для пользователя vUSER_ID в чате vCHAT_ID'
+PROC : BEGIN
+    CALL CHECK_USER_IN_CHAT(
+        vUSER_ID,
+        vCHAT_ID,
+        @resultcode,
+        @errormsg);
+    
+    IF @resultcode = 0 THEN
+        SELECT 0 as RESCODE,
+        CONCAT('Пользователь id = ', vUSER_ID,
+               ' не входит в чат id = ', vCHAT_ID)
+        as MSG;
+        LEAVE PROC;
+    END IF;
+    
+    IF @resultcode = -1 THEN
+        SELECT 0 as RESCODE,
+        @errormsg as MSG;
+        LEAVE PROC;
+    END IF;
+    
+    UPDATE
+			user_in_chat as UCH
+		SET
+			UCH.ENABLE = vENABLE
+		WHERE 
+			UCH.USER_ID = vUSER_ID AND
+            UCH.CHAT_ID = vCHAT_ID;
+    
+    SELECT 1 as RESCODE;
 
+END
+$$
+
+
+DELIMITER ;

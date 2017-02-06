@@ -82,7 +82,8 @@ CREATE PROCEDURE UPDATE_USER (
     IN vLOGIN VARCHAR(255),
     IN vEMAIL VARCHAR(255),
     IN vPASSWORD VARCHAR(255),
-    IN vROLE VARCHAR(255)
+    IN vROLE VARCHAR(255),
+    IN vENABLE BOOL
 )
 COMMENT 'Изменяет информацию пользователя с id = vUSER_ID'
 PROC : BEGIN
@@ -114,6 +115,7 @@ PROC : BEGIN
             U.LOGIN = vLOGIN,
             U.EMAIL = vEMAIL,
             U.PASSWORD = vPASSWORD,
+            U.ENABLE = vENABLE,
             U.ROLE_ID = (
                     SELECT
                             R.ROLE_ID

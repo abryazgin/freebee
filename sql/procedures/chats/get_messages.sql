@@ -12,7 +12,8 @@ BEGIN
             M.MESSAGE_ID,
             M.SEND_TIME,
             M.MESS_TEXT,
-            U.USER_ID
+            U.USER_ID,
+            M.ENABLE
         FROM
             message as M
             JOIN user_in_chat as UCH
@@ -37,7 +38,8 @@ BEGIN
             M.MESSAGE_ID,
             M.SEND_TIME,
             M.MESS_TEXT,
-            U.USER_ID
+            U.USER_ID,
+            M.ENABLE
         FROM
             message as M
             JOIN user_in_chat as UCH
