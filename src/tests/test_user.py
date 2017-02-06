@@ -118,7 +118,7 @@ class TestUser(unittest.TestCase):
         pass
         # create user
         # get user - assert exists, assert attr in db eq inserted attr
-        # delete
+        # deletee
         # get user - assert not exists
 
 
