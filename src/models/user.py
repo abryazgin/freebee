@@ -66,11 +66,13 @@ class User:
             raise db_worker.DBException(
                 'Пользователь с login = {0} не существует.'.format(log)
             )
-        return User(id=u['USER_ID'],
-                    login=u['LOGIN'],
-                    email=u['EMAIL'],
-                    password=u['PASSWORD'],
-                    role=u['ROLE'])
+        return User(
+            id=u['USER_ID'],
+            login=u['LOGIN'],
+            email=u['EMAIL'],
+            password=u['PASSWORD'],
+            role=u['ROLE']
+        )
 
     def get_chat_list(self, conn):
         """
