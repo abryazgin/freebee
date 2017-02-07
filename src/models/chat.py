@@ -1,5 +1,5 @@
-import db_worker
-import user
+from . import db_worker
+from . import ModelFactory
 
 
 class Chat:
@@ -29,8 +29,8 @@ class Chat:
         result = []
         for mess in message_list:
             user_id = mess['USER_ID']
-            user_sender = User.get_user_by_id(conn, user_id)
-            result.append(Message(id=mess['MESSAGE_ID'],
+            user_sender = ModelFactory.User.get_user_by_id(conn, user_id)
+            result.append(ModelFactory.Message(id=mess['MESSAGE_ID'],
                                   time=mess['SEND_TIME'],
                                   text=mess['MESS_TEXT'],
                                   sender=user_sender,
@@ -46,12 +46,12 @@ class Chat:
         result = []
         for mess in message_list:
             user_id = mess['USER_ID']
-            user_sender = User.get_user_by_id(conn, user_id)
-            result.append(Message(id=mess['MESSAGE_ID'],
-                                  time=mess['SEND_TIME'],
-                                  text=mess['MESS_TEXT'],
-                                  sender=user_sender,
-                                  chat=self))
+            user_sender = ModelFactory.User.get_user_by_id(conn, user_id)
+            result.append(ModelFactory.Message(id=mess['MESSAGE_ID'],
+                                               time=mess['SEND_TIME'],
+                                               text=mess['MESS_TEXT'],
+                                               sender=user_sender,
+                                               chat=self))
         return result
 
     def get_user_list(self, conn):
@@ -60,11 +60,11 @@ class Chat:
         """
         user_list = db_worker.select_list(
             conn, 'CALL GET_CHAT_USERS(%s)', (self.id,))
-        return [user.User(id=u['USER_ID'],
-                          login=u['LOGIN'],
-                          email=u['EMAIL'],
-                          password=u['PASSWORD'],
-                          role=u['ROLE'])
+        return [ModelFactory.User(id=u['USER_ID'],
+                                  login=u['LOGIN'],
+                                  email=u['EMAIL'],
+                                  password=u['PASSWORD'],
+                                  role=u['ROLE'])
                 for u in user_list]
 
     def create(self, conn):

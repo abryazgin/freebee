@@ -1,6 +1,6 @@
 import inspect
 from flask import request, redirect, url_for, session, escape
-from src.models.user import User
+from models.user import User
 
 
 class ChatController(object):

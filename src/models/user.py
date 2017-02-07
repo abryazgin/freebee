@@ -1,6 +1,5 @@
-import db_worker
-import chat
-import message
+from . import db_worker
+from . import ModelFactory\
 
 
 class User:
@@ -67,11 +66,13 @@ class User:
             raise db_worker.DBException(
                 'Пользователь с login = {0} не существует.'.format(log)
             )
-        return User(id=u['USER_ID'],
-                    login=u['LOGIN'],
-                    email=u['EMAIL'],
-                    password=u['PASSWORD'],
-                    role=u['ROLE'])
+        return User(
+            id=u['USER_ID'],
+            login=u['LOGIN'],
+            email=u['EMAIL'],
+            password=u['PASSWORD'],
+            role=u['ROLE']
+        )
 
     def get_chat_list(self, conn):
         """
@@ -80,7 +81,7 @@ class User:
         """
         chats = db_worker.select_list(
             conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
-        return [chat.Chat(id=ch['CHAT_ID'],
+        return [ModelFactory.Chat(id=ch['CHAT_ID'],
                           name=ch['NAME'])
                 for ch in chats]
 
@@ -91,12 +92,14 @@ class User:
         """
         message_list = db_worker.select_list(
             conn, 'CALL GET_USER_MESSAGES(%s)', (self.id,))
-        return [message.Message(id=msg['MESSAGE_ID'],
-                                text=msg['MESS_TEXT'],
-                                time=msg['SEND_TIME'],
-                                chat=chat.Chat(id=msg['CHAT_ID'],
-                                name=msg['CHAT_NAME']),
-                                sender=self)
+        return [ModelFactory.Message(
+            id=msg['MESSAGE_ID'],
+            text=msg['MESS_TEXT'],
+            time=msg['SEND_TIME'],
+            chat=ModelFactory.Chat(
+                id=msg['CHAT_ID'],
+                name=msg['CHAT_NAME']),
+            sender=self)
                 for msg in message_list]
 
     def get_last_messages(self, conn, mess_count):
@@ -106,12 +109,12 @@ class User:
         """
         message_list = db_worker.select_list(
             conn, 'CALL GET_USER_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
-        return [message.Message(id=msg['MESSAGE_ID'],
-                                text=msg['MESS_TEXT'],
-                                time=msg['SEND_TIME'],
-                                chat=chat.Chat(id=msg['CHAT_ID'],
-                                name=msg['CHAT_NAME']),
-                                sender=self)
+        return [ModelFactory.Message(id=msg['MESSAGE_ID'],
+                                     text=msg['MESS_TEXT'],
+                                     time=msg['SEND_TIME'],
+                                     chat=ModelFactory.Chat(id=msg['CHAT_ID'],
+                                     name=msg['CHAT_NAME']),
+                                     sender=self)
                 for msg in message_list]
 
     def create(self, conn):
