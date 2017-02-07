@@ -1,4 +1,4 @@
-import db_worker
+from . import db_worker
 
 
 class Message:
