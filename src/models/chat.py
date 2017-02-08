@@ -30,11 +30,12 @@ class Chat:
         for mess in message_list:
             user_id = mess['USER_ID']
             user_sender = ModelFactory.User.get_user_by_id(conn, user_id)
-            result.append(ModelFactory.Message(id=mess['MESSAGE_ID'],
-                                  time=mess['SEND_TIME'],
-                                  text=mess['MESS_TEXT'],
-                                  sender=user_sender,
-                                  chat=self))
+            result.append(ModelFactory.Message(
+                id=mess['MESSAGE_ID'],
+                time=mess['SEND_TIME'],
+                text=mess['MESS_TEXT'],
+                sender=user_sender,
+                chat=self))
         return result
 
     def get_last_messages(self, conn, mess_count):
@@ -82,15 +83,14 @@ class Chat:
         """
         return db_worker.delete(conn, 'CALL DELETE_CHAT_BY_ID(%s)', (ch.id,))
 
-    def update(self, conn, name):
+    def update(self, conn):
         """
         Обновляет данные о чате в бд.
         :exception: db_worker.DBException, если чат не сохранён в бд.
         :return: Количество изменённых в бд строк.
         """
         result = db_worker.update(
-            conn, 'CALL UPDATE_CHAT(%s, %s)', (self.id, name))
-        self.name = name
+            conn, 'CALL UPDATE_CHAT(%s, %s)', (self.id, self.name))
         return result
 
     def add_user(self, conn, us):

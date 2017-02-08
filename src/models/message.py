@@ -34,7 +34,7 @@ class Message:
         return db_worker.delete(
             conn, 'CALL DELETE_MESSAGE_BY_ID(%s)', (mess.id,))
 
-    def update(self, conn, sender=None, chat=None, time=None, text=None):
+    def update(self, conn):
         """
         Обновляет данные о сообщение в бд.
         :exception: db_worker.DBException,
@@ -42,21 +42,10 @@ class Message:
                     сообщение не сохранено в бд.
         :return: Количество изменённых в бд строк.
         """
-        # TODO есть ли более элегантный способ проверки параметров?
-        sender = sender if sender else self.sender
-        chat = chat if chat else self.chat
-        time = time if time else self.time
-        text = text if text else self.text
-
         result = db_worker.update(
             conn,
             'CALL UPDATE_MESSAGE(%s, %s, %s, %s, %s)',
-            (self.id, sender.id, chat.id, time, text))
-
-        self.sender = sender
-        self.chat = chat
-        self.time = time
-        self.text = text
+            (self.id, self.sender.id, self.chat.id, self.time, self.text))
         return result
 
 

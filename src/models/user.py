@@ -1,5 +1,5 @@
 from . import db_worker
-from . import ModelFactory\
+from . import ModelFactory
 
 
 class User:
@@ -44,8 +44,7 @@ class User:
             # чтобы показать более информативное сообщение
             # (db_worker не знает, какой был запрос)
             raise db_worker.DBException(
-                'Пользователь с id = {0} не существует.'.format(id)
-            )
+                'Пользователь с id = {0} не существует.'.format(id))
         return User(id=u['USER_ID'],
                     login=u['LOGIN'],
                     email=u['EMAIL'],
@@ -64,8 +63,7 @@ class User:
             # чтобы показать более информативное сообщение
             # (db_worker не знает, какой был запрос)
             raise db_worker.DBException(
-                'Пользователь с login = {0} не существует.'.format(log)
-            )
+                'Пользователь с login = {0} не существует.'.format(log))
         return User(
             id=u['USER_ID'],
             login=u['LOGIN'],
@@ -82,7 +80,7 @@ class User:
         chats = db_worker.select_list(
             conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
         return [ModelFactory.Chat(id=ch['CHAT_ID'],
-                          name=ch['NAME'])
+                                  name=ch['NAME'])
                 for ch in chats]
 
     def get_messages(self, conn):
@@ -128,7 +126,7 @@ class User:
             'CALL CREATE_USER(%s, %s, %s, %s)',
             (self.login, self.email, self.password, self.role))
 
-    def update(self, conn, login=None, email=None, password=None, role=None):
+    def update(self, conn):
         """
         Обновляет данные о пользователе в бд.
         :exception: db_worker.DBException,
@@ -136,20 +134,10 @@ class User:
                     пользователь не сохранён в бд.
         :return: Количество изменённых в бд строк.
         """
-        # TODO есть ли более элегантный способ проверки параметров?
-        login = login if login else self.login
-        email = email if email else self.email
-        password = password if password else self.password
-        role = role if role else self.role
-
         result = db_worker.update(conn,
                                   'CALL UPDATE_USER(%s, %s, %s, %s, %s)',
-                                  (self.id, login, email, password, role))
-
-        self.login = login
-        self.email = email
-        self.password = password
-        self.role = role
+                                  (self.id, self.login, self.email,
+                                   self.password, self.role))
         return result
 
     @staticmethod

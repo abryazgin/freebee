@@ -141,6 +141,7 @@ def connection():
         cursor.close()
         db.close()
 
+# пример использования
 if __name__ == '__main__':
     with connection() as conn:
         print(select_obj(conn, 'SELECT 1 AS RES'))
