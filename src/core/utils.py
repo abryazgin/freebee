@@ -1,5 +1,5 @@
-from ..controllers import UserController
-from ..configurator import app
+from controllers import UserController
+from configurator import app
 from flask import request, redirect, url_for, g, session, escape
 from werkzeug.local import LocalProxy
 from functools import wraps

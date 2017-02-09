@@ -1,7 +1,7 @@
 from flask import Blueprint, g, redirect, url_for, request, session
-from src.core.utils import auth, db, log_request
-# from src.core.utils import get_connector
-from .controllers import ChatController, UserController
+from core.utils import auth, db, log_request
+# from core.utils import get_connector
+from controllers import ChatController, UserController
 
 app_api = Blueprint('api', __name__)
 

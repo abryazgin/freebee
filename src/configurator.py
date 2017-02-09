@@ -2,9 +2,9 @@
 # -*- coding:utf-8 -*-
 
 from flask import Flask, g
-from . import config
+import config
 import logging
-from src.core.logging import GzRotatingFileHandler
+from core.logging import GzRotatingFileHandler
 
 
 app = Flask(__name__)
