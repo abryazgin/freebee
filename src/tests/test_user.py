@@ -101,25 +101,15 @@ class TestUser(unittest.TestCase):
                       email='smth1@ex.com',
                       password='admpass',
                       role=user.User.ADMIN)
+        u.login = 'paul'
         self.assertRaises(db_worker.DBException,
                           u.update,
-                          conn=self.cursor,
-                          login='paul')
+                          conn=self.cursor)
+        u.login = 'admin'
+        u.email = 'smth2@ex.com'
         self.assertRaises(db_worker.DBException,
                           u.update,
-                          conn=self.cursor,
-                          email='smth2@ex.com')
-
-    # bdd test
-    @unittest.skip('not implemented yet')
-    def test_case(self):
-        # login = generator.get_random_login()
-        # role = User.ADMIN
-        pass
-        # create user
-        # get user - assert exists, assert attr in db eq inserted attr
-        # delete
-        # get user - assert not exists
+                          conn=self.cursor)
 
 
 if __name__ == '__main__':

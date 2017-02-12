@@ -1,5 +1,7 @@
-import config
 import mysql.connector
+from contextlib import contextmanager
+
+import config as config
 
 
 class DBException(Exception):
@@ -123,3 +125,25 @@ def update(conn, sql_query, sql_args=None):
 def get_db():
     db = mysql.connector.connect(**config.DATABASE)
     return db
+
+
+@contextmanager
+def connection():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    try:
+        yield cursor
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        cursor.close()
+        db.close()
+
+# пример использования
+if __name__ == '__main__':
+    with connection() as conn:
+        print(select_obj(conn, 'SELECT 1 AS RES'))
+        print(select_obj(conn, 'SELECT 2 AS RES'))
+        print(connection.__dict__)

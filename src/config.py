@@ -2,7 +2,7 @@ import os
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE = {
-    'host': 'localhost',
+    'host':     'localhost',
     'user':     'freebee',
     'passwd':   '221uml?Po',
     'db':       'freebee',
@@ -12,7 +12,7 @@ SECRET_KEY = '3656i6645fhn56687nch65fdswfbvd'
 
 # logging
 
-LOG_DIR = '/home/daniil/howork/freebee_log'
+LOG_DIR = os.environ.get('LOG_DIR') or BASEDIR
 LOG_FILE = 'foo.log'
 LOG_FORMAT = '%(name)s-%(levelno)s %(asctime)-15s : %(message)s'
 LOG_HANDLER = {

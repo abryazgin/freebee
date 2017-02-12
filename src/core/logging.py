@@ -24,7 +24,7 @@ class GzRotatingFileHandler(RotatingFileHandler):
         return file_name + '.gz'
 
 # можно использовать для тестов
-from ..config import LOG_HANDLER
-logger = logging.getLogger()
-handler = GzRotatingFileHandler(**LOG_HANDLER)
-logger.addHandler(handler)
+# from config import LOG_HANDLER
+# logger = logging.getLogger()
+# handler = GzRotatingFileHandler(**LOG_HANDLER)
+# logger.addHandler(handler)

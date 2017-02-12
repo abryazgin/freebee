@@ -1,6 +1,6 @@
 # from flask import
-from src.models.user import User
-from src.models.db_worker import DBException
+from models.user import User
+from models.db_worker import DBException
 
 
 class UserController(object):
