@@ -12,10 +12,10 @@ BEGIN
             M.MESSAGE_ID,
             M.MESS_TEXT,
             M.SEND_TIME,
-            M.ENABLE,
+            M.ENABLE as 'MESS_ENABLE',
             CH.CHAT_ID,
             CH.NAME as 'CHAT_NAME',
-            CH.ENABLE
+            CH.ENABLE as 'CHAT_ENABLE'
         FROM
             message as M
             JOIN user_in_chat as UCH
@@ -40,10 +40,10 @@ BEGIN
             M.MESSAGE_ID,
             M.MESS_TEXT,
             M.SEND_TIME,
-            M.ENABLE,
+            M.ENABLE as 'MESS_ENABLE',
             CH.CHAT_ID,
             CH.NAME as 'CHAT_NAME',
-            CH.ENABLE
+            CH.ENABLE as 'CHAT_ENABLE'
         FROM
             message as M
             JOIN user_in_chat as UCH
