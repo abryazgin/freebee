@@ -8,9 +8,9 @@ import mysql.connector
 
 def get_db():
     db = getattr(g, '_database', None)
-    app.logger.info('get_db')
+    # app.logger.info('get_db')
     if db is None:
-        app.logger.info('get_db_create')
+        # app.logger.info('get_db_create')
         db = g._database = mysql.connector.connect(**app.config['DATABASE'])
         # db = g._database = conn.cursor(dictionary=True)
     return db
@@ -19,9 +19,9 @@ def get_db():
 @app.teardown_appcontext
 def teardown_db(exception):
     db = getattr(g, '_database', None)
-    app.logger.info('teardown_db')
+    # app.logger.info('teardown_db')
     if db is not None:
-        app.logger.info('teardown_db_close')
+        # app.logger.info('teardown_db_close')
         db.close()
 
 db = LocalProxy(get_db)

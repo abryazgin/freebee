@@ -2,7 +2,8 @@
 # -*- coding:utf-8 -*-
 
 from configurator import app
-from api import app_api
+from request_parser import app_api
+# from api import app_api
 
 app.register_blueprint(app_api)
 

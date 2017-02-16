@@ -40,6 +40,8 @@ def test_chat():
 # @app_api.route('/login')
 @log_request
 def login():
+    ar = request.args
+    print(dir(ar), [i for i in ar.lists()], ar.to_dict())
     user_login = request.args.get('login')
     user_pass = request.args.get('password')
     if user_login:
