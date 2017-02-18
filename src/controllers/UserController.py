@@ -1,23 +1,11 @@
 # from flask import
-from models.user import User
+from models import User, Chat
 from models.db_worker import DBException
+from controllers import BaseController
 
 
-class UserController(object):
+class UserController(BaseController):
 
-    def __init__(self, cursor):
-        self.cursor = cursor
-        self.user_login = None  # user_login
-        self.curuser = None
-        self.message = None
+    def __init__(self):
+        super().__init__()
 
-    def authenticate(self, user_login, user_pass):
-        try:
-            self.curuser = User.get_user_by_login(self.cursor, user_login)
-            if self.curuser.password == user_pass:
-                return True
-        except DBException as e:
-            self.message = e.args[0]
-        else:
-            self.message = 'failed password'
-        return
