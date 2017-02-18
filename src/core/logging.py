@@ -5,7 +5,9 @@ from logging.handlers import RotatingFileHandler
 
 
 class GzRotatingFileHandler(RotatingFileHandler):
-
+    """
+    класс ротационного обработчика логов, с архивированием
+    """
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.rotator = self._rotator

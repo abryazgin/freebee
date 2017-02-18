@@ -102,7 +102,7 @@ class Chat:
         :return: Количество изменённых в бд строк.
         """
         return db_worker.update(
-            conn, 'CALL ADD_USER_IN_CHAT(%s, %s)', (self.id, us.id))
+            conn, 'CALL ADD_USER_IN_CHAT(%s, %s)', (us.id, self.id))
 
     def remove_user(self, conn, us):
         """

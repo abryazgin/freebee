@@ -1,13 +1,15 @@
 import controllers
 from configurator import app
 import json
-
-
-class BaseActionerException(Exception):
-    pass
+from models.db_worker import connection
+from core.exception import RequestException
 
 
 class BaseActioner(object):
+    """
+    Базовый класс для actioner.
+    Также используется для идентификации actioner
+    """
     actioner_name = 'default'
 
     def register_action(self, control, method, dict_param):
@@ -33,25 +35,42 @@ class ApiActioner(BaseActioner):
     def is_registered(self):
         return self._registered
 
+    def get_element(self, obj, attr_name, postfix='', errmess=u'не найден элемент'):
+        """
+        поиск атрибутов в объекте
+        :param obj: объект для поиска
+        :param attr_name: str название аттрибута
+        :param postfix: str добивка названия
+        :param errmess: текст ошибки если не найден атрибут
+        """
+        for var in dir(obj):
+            if var.lower() == (attr_name + postfix).lower():
+                break
+        else:
+            var = ''  # если прошли цикл и ничего не нашли, то обнуляем
+        attr = getattr(obj, var, None)
+        if attr is None or not callable(attr):
+            raise RequestException(errmess)
+        return attr
+
+    def check_auth(self):
+        pass
+
     def register_action(self, control, method, dict_param):
-        control_class = getattr(controllers, control, None)
+        """
+        метод регистрации действия. Находит контроллер, метод, подготавливает контроллер к работе
+        """
+        control_class = self.get_element(controllers,
+                                         control,
+                                         postfix='controller',
+                                         errmess=u'не найден контроллер {}'.format(control))
         self._control = control_class()
-        if self._control is None:
-            return False
-        self._method = getattr(self._control, method, None)
-        if self._method is None:
-            return False
+        self._method = self.get_element(self._control, method, errmess=u'не найден метод {}'.format(method))
         self._control.prepare(dict_param)
         self.register_data = {'control': control, 'method': method, 'dict_param': dict_param}
         self._registered = True
-        return True
 
     def log_request(self):
-        # params = []
-        # for k, v in self._method_kwarg.items():
-        #     line = '\n    ' + k + '=' + v
-        #     params.append(line)
-        # case_params = reduce(lambda accum, param: accum + param, params, '')
         app.logger.info('module : {}, action : {}, params : {}'.format(
             self.register_data['control'],
             self.register_data['method'],
@@ -59,8 +78,15 @@ class ApiActioner(BaseActioner):
         ))
 
     def run_control(self):
+        """
+        запуск метода
+        :return: возвращает результат метода в запрошенном виде
+        """
         if not self.is_registered():
-            raise BaseActionerException
+            raise RequestException(u'действие не зарегистрированно')
         self.log_request()
-        res = self._method(**self.register_data['dict_param'])
+        with connection() as conn:
+            kwargs = self.register_data['dict_param']
+            kwargs['_conn'] = conn
+            res = self._method(**kwargs)
         return res
