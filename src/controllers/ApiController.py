@@ -1,7 +1,7 @@
 import json
 
 
-class BaseController(object):
+class ApiController(object):
     """
     Базовый класс для контроллеров Api
     """

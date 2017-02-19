@@ -4,9 +4,10 @@ import actioner
 
 app_api = Blueprint('api', __name__)
 
-@app_api.route('/<string:mod_name>/<string:control_name>/<string:method>/')
+
+@app_api.route('/<string:mod_name>/<string:control_name>/<string:method>/', methods=['GET', 'POST'])
 def parse(mod_name, control_name, method):
-    kwargs = request.args.to_dict()
+    kwargs = request.form.to_dict()
     mod = None
     for element in dir(actioner):
         var = getattr(actioner, element)
@@ -14,10 +15,9 @@ def parse(mod_name, control_name, method):
             mod = var()
             break
     try:
-        mod.register_action(control_name, method, kwargs)
-        resp = mod.run_control()
+        resp = mod.run_action(control_name, method, kwargs)
     except RequestException as e:
-        return str(e.args), 400
+        return str(e.kwargs['errmess']), e.kwargs['errcode']
     # if not mod.register_action(control_name, method, kwargs):
     #     return '', 400
     # resp = mod.run_control()

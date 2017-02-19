@@ -82,3 +82,11 @@ def attr_parser(data_list, mapa):
         param_build = _attr_parser_helper(obj, mapa)
         constructed.append(param_build)
     return constructed
+
+
+class HttpCodes:
+    bed_request = 400
+    unauthorized = 401
+    not_found = 404
+    serv_err = 500
+
