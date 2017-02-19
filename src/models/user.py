@@ -161,9 +161,6 @@ class User:
         """
         return db_worker.delete(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
 
-    def enable(self):
-        pass
-
 
 if __name__ == '__main__':
     db = db_worker.get_db()

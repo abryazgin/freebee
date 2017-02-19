@@ -38,7 +38,7 @@ class Chat:
                 time=mess['SEND_TIME'],
                 text=mess['MESS_TEXT'],
                 sender=user_sender,
-                enable=ch['CHAT_ENABLE'],
+                enable=mess['CHAT_ENABLE'],
                 chat=self))
         return result
 
@@ -55,7 +55,7 @@ class Chat:
             result.append(ModelFactory.Message(id=mess['MESSAGE_ID'],
                                                time=mess['SEND_TIME'],
                                                text=mess['MESS_TEXT'],
-                                               enable=ch['CHAT_ENABLE'],
+                                               enable=mess['CHAT_ENABLE'],
                                                sender=user_sender,
                                                chat=self))
         return result
