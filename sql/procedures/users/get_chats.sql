@@ -10,7 +10,8 @@ COMMENT 'Возвращает список чатов данного польз�
 BEGIN
     SELECT
             CH.CHAT_ID,
-            CH.NAME
+            CH.NAME,
+            CH.ENABLE as 'CHAT_ENABLE'
         FROM
             chat as CH
             JOIN user_in_chat as UCH

@@ -19,23 +19,3 @@ def step_impl(context, number):  # -- NOTE: number is converted into integer
 def step_impl(context):
     assert context.failed is False
     assert context.tests_count >= 0
-
-
-@given('connect to db')
-def step_impl(context):
-    context.db = db_worker.get_db()
-    context.cursor = context.db.cursor(dictionary=True)
-
-
-@when('get user with id = {num:d}')
-def step_imp(context, num):
-    context.us = user.User.get_user_by_id(
-        context.cursor, num)
-    assert context.us is not None
-
-
-@then('user role should be "{role}"')
-def step_imp(context, role):
-    assert context.us.role == role
-    context.cursor.close()
-    context.db.close()

@@ -8,7 +8,8 @@ COMMENT 'Возвращает всех список чатов'
 BEGIN
     SELECT
             CH.CHAT_ID,
-            CH.NAME
+            CH.NAME,
+            CH.ENABLE
         FROM
             chat as CH;
 END

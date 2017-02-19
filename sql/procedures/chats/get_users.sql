@@ -13,7 +13,8 @@ BEGIN
             U.LOGIN,
             U.EMAIL,
             U.PASSWORD,
-            R.NAME as 'ROLE'
+            R.NAME as 'ROLE',
+            U.ENABLE
         FROM user as U
             JOIN user_in_chat as UCH
                 ON UCH.USER_ID = U.USER_ID

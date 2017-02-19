@@ -3,12 +3,14 @@ from . import ModelFactory
 
 
 class Chat:
-    def __init__(self, name, id=None):
+    def __init__(self, name, enable=True, id=None):
         self.id = id
         self.name = name
+        self.enable = enable
 
     def __str__(self):
-        return 'id = {0}, name = {1}'.format(self.id, self.name)
+        return 'id = {0}, name = {1}, enable = {2}'.format(
+            self.id, self.name, self.enable)
 
     @staticmethod
     def get_all_chats(conn):
@@ -17,6 +19,7 @@ class Chat:
         """
         chats = db_worker.select_list(conn, 'CALL GET_CHATS()')
         return [Chat(id=ch['CHAT_ID'],
+                     enable=ch['CHAT_ENABLE'],
                      name=ch['NAME'])
                 for ch in chats]
 
@@ -35,6 +38,7 @@ class Chat:
                 time=mess['SEND_TIME'],
                 text=mess['MESS_TEXT'],
                 sender=user_sender,
+                enable=mess['CHAT_ENABLE'],
                 chat=self))
         return result
 
@@ -51,6 +55,7 @@ class Chat:
             result.append(ModelFactory.Message(id=mess['MESSAGE_ID'],
                                                time=mess['SEND_TIME'],
                                                text=mess['MESS_TEXT'],
+                                               enable=mess['CHAT_ENABLE'],
                                                sender=user_sender,
                                                chat=self))
         return result
@@ -65,6 +70,7 @@ class Chat:
                                   login=u['LOGIN'],
                                   email=u['EMAIL'],
                                   password=u['PASSWORD'],
+                                  enable=u['USER_ENABLE'],
                                   role=u['ROLE'])
                 for u in user_list]
 
@@ -90,7 +96,8 @@ class Chat:
         :return: Количество изменённых в бд строк.
         """
         result = db_worker.update(
-            conn, 'CALL UPDATE_CHAT(%s, %s)', (self.id, self.name))
+            conn, 'CALL UPDATE_CHAT(%s, %s, %s)',
+            (self.id, self.name, self.enable))
         return result
 
     def add_user(self, conn, us):
