@@ -12,7 +12,7 @@ BEGIN
             EMAIL,
             R.NAME as 'ROLE',
             U.PASSWORD,
-            U.ENABLE
+            U.ENABLE as 'USER_ENABLE'
         FROM
             user as U
             JOIN role as R 
@@ -32,7 +32,7 @@ BEGIN
             U.EMAIL,
             R.NAME as 'ROLE',
             U.PASSWORD,
-            U.ENABLE
+            U.ENABLE as 'USER_ENABLE'
         FROM
             user as U
             JOIN role as R
@@ -54,7 +54,7 @@ BEGIN
             U.EMAIL,
             R.NAME as 'ROLE',
             U.PASSWORD,
-            U.ENABLE
+            U.ENABLE as 'USER_ENABLE'
         FROM
             user as U
             JOIN role as R

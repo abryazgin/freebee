@@ -7,17 +7,19 @@ class User:
     STAFFER = 'staffer'
     CLIENT = 'client'
 
-    def __init__(self, login, email, role, password, id=None):
+    def __init__(self, login, email, role, password, enable=True, id=None):
         self.id = id
         self.login = login
         self.email = email
         self.password = password
         self.role = role
+        self.enable = enable
 
     def __str__(self):
         return ('id = {0},\tlogin = {1},\temail = {2},\t' +
-                'password = {3},\trole = {4}').format(
-                self.id, self.login, self.email, self.password, self.role)
+                'password = {3},\trole = {4},\tenable = {5}').format(
+            self.id, self.login, self.email, self.password,
+            self.role, self.enable)
 
     @staticmethod
     def get_all_users(conn):
@@ -29,6 +31,7 @@ class User:
                      login=u['LOGIN'],
                      email=u['EMAIL'],
                      password=u['PASSWORD'],
+                     enable=u['USER_ENABLE'],
                      role=u['ROLE'])
                 for u in users]
 
@@ -49,6 +52,7 @@ class User:
                     login=u['LOGIN'],
                     email=u['EMAIL'],
                     password=u['PASSWORD'],
+                    enable=u['USER_ENABLE'],
                     role=u['ROLE'])
 
     @staticmethod
@@ -69,6 +73,7 @@ class User:
             login=u['LOGIN'],
             email=u['EMAIL'],
             password=u['PASSWORD'],
+            enable=u['USER_ENABLE'],
             role=u['ROLE']
         )
 
@@ -80,6 +85,7 @@ class User:
         chats = db_worker.select_list(
             conn, 'CALL GET_CHAT_LIST_BY_USER_ID(%s)', (self.id,))
         return [ModelFactory.Chat(id=ch['CHAT_ID'],
+                                  enable=ch['CHAT_ENABLE'],
                                   name=ch['NAME'])
                 for ch in chats]
 
@@ -96,9 +102,11 @@ class User:
             time=msg['SEND_TIME'],
             chat=ModelFactory.Chat(
                 id=msg['CHAT_ID'],
+                enable=msg['CHAT_ENABLE'],
                 name=msg['CHAT_NAME']),
+            enable=msg['MESS_ENABLE'],
             sender=self)
-                for msg in message_list]
+            for msg in message_list]
 
     def get_last_messages(self, conn, mess_count):
         """
@@ -107,13 +115,16 @@ class User:
         """
         message_list = db_worker.select_list(
             conn, 'CALL GET_USER_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
-        return [ModelFactory.Message(id=msg['MESSAGE_ID'],
-                                     text=msg['MESS_TEXT'],
-                                     time=msg['SEND_TIME'],
-                                     chat=ModelFactory.Chat(id=msg['CHAT_ID'],
-                                     name=msg['CHAT_NAME']),
-                                     sender=self)
-                for msg in message_list]
+        return [ModelFactory.Message(
+            id=msg['MESSAGE_ID'],
+            text=msg['MESS_TEXT'],
+            time=msg['SEND_TIME'],
+            chat=ModelFactory.Chat(id=msg['CHAT_ID'],
+                                   enable=msg['CHAT_ENABLE'],
+                                   name=msg['CHAT_NAME']),
+            enable=msg['MESS_ENABLE'],
+            sender=self)
+            for msg in message_list]
 
     def create(self, conn):
         """
@@ -135,9 +146,9 @@ class User:
         :return: Количество изменённых в бд строк.
         """
         result = db_worker.update(conn,
-                                  'CALL UPDATE_USER(%s, %s, %s, %s, %s)',
+                                  'CALL UPDATE_USER(%s, %s, %s, %s, %s, %s)',
                                   (self.id, self.login, self.email,
-                                   self.password, self.role))
+                                   self.password, self.role, self.enable))
         return result
 
     @staticmethod
@@ -149,6 +160,9 @@ class User:
         :return: Количество изменённых в бд строк.
         """
         return db_worker.delete(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
+
+    def enable(self):
+        pass
 
 
 if __name__ == '__main__':
