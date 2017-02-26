@@ -9,9 +9,10 @@ BEGIN
     SELECT
             CH.CHAT_ID,
             CH.NAME,
-            CH.ENABLE
+            CH.ENABLE as 'CHAT_ENABLE'
         FROM
             chat as CH;
 END
-
 $$
+
+DELIMITER ;

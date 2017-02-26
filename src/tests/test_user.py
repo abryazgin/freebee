@@ -82,18 +82,12 @@ class TestUser(unittest.TestCase):
                       email='smth1@ex.com',
                       password='admpass',
                       role=user.User.ADMIN)
-        messages_list = u.get_messages(self.cursor)
+        messages_list = u.get_all_messages(self.cursor)
         self.assertEqual(2, len(messages_list))
-
-    def test_admin_last_message(self):
-        u = user.User(id=1,
-                      login='admin',
-                      email='smth1@ex.com',
-                      password='admpass',
-                      role=user.User.ADMIN)
-        messcnt = 1
-        messages_list = u.get_last_messages(self.cursor, messcnt)
-        self.assertEqual(messcnt, len(messages_list))
+        messages_list = u.get_messages_slice(self.cursor, begin=0, limit=1)
+        self.assertEqual(1, len(messages_list))
+        messages_list = u.get_last_messages(self.cursor, limit=1)
+        self.assertEqual(1, len(messages_list))
 
     def test_user_update_not_unique(self):
         u = user.User(id=1,
