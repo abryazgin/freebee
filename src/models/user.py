@@ -89,13 +89,16 @@ class User:
                                   name=ch['NAME'])
                 for ch in chats]
 
-    def get_messages(self, conn):
+    def get_all_messages(self, conn):
         """
         :return: list, содержащий все сообщения,
                  отправленные данным пользователем.
         """
         message_list = db_worker.select_list(
-            conn, 'CALL GET_USER_MESSAGES(%s)', (self.id,))
+                conn,
+                'CALL GET_USER_MESSAGES(%s)',
+                (self.id,))
+
         return [ModelFactory.Message(
             id=msg['MESSAGE_ID'],
             text=msg['MESS_TEXT'],
@@ -108,23 +111,34 @@ class User:
             sender=self)
             for msg in message_list]
 
-    def get_last_messages(self, conn, mess_count):
+    def get_last_messages(self, conn, limit):
         """
-        :return: list, содержащий последние mess_count сообщений,
-                 отправленных данным пользователем.
+        :return: список из limit последних сообщений,
+                 отправленных пользователем
+        """
+        return self.get_messages_slice(conn, begin=0, limit=limit)
+
+    def get_messages_slice(self, conn, begin, limit):
+        """
+        :return: список из limit сообщений,
+                 отправленных данным пользователем, начиная с begin
         """
         message_list = db_worker.select_list(
-            conn, 'CALL GET_USER_LAST_MESSAGES(%s, %s)', (self.id, mess_count))
+            conn,
+            'CALL GET_USER_MESSAGES_SLICE(%s, %s, %s)',
+            (self.id, begin, limit))
+
         return [ModelFactory.Message(
             id=msg['MESSAGE_ID'],
             text=msg['MESS_TEXT'],
             time=msg['SEND_TIME'],
-            chat=ModelFactory.Chat(id=msg['CHAT_ID'],
-                                   enable=msg['CHAT_ENABLE'],
-                                   name=msg['CHAT_NAME']),
+            chat=ModelFactory.Chat(
+                id=msg['CHAT_ID'],
+                enable=msg['CHAT_ENABLE'],
+                name=msg['CHAT_NAME']),
             enable=msg['MESS_ENABLE'],
             sender=self)
-            for msg in message_list]
+                for msg in message_list]
 
     def create(self, conn):
         """

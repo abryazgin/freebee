@@ -18,6 +18,7 @@ class TestChat(unittest.TestCase):
         self.db.close()
 
     def test_all_chat(self):
+        print('asd')
         chat_list = chat.Chat.get_all_chats(self.cursor)
         self.assertEqual(3, len(chat_list))
 
@@ -25,16 +26,10 @@ class TestChat(unittest.TestCase):
         ch = chat.Chat(name='support-1', id=1)
         message_list = ch.get_all_messages(self.cursor)
         self.assertEqual(3, len(message_list))
-
-    def test_chat_last_messages(self):
-        ch = chat.Chat(name='support-1', id=1)
-        messcnt = 1
-        message_list = ch.get_last_messages(self.cursor, messcnt)
-        self.assertEqual(messcnt, len(message_list))
-
-        messcnt = 10
-        message_list = ch.get_last_messages(self.cursor, messcnt)
-        self.assertEqual(3, len(message_list))
+        message_list = ch.get_messages_slice(self.cursor, begin=0, limit=2)
+        self.assertEqual(2, len(message_list))
+        message_list = ch.get_last_messages(self.cursor, limit=1)
+        self.assertEqual(1, len(message_list))
 
     def test_user_list(self):
         ch1 = chat.Chat(id=1, name='support-1')
