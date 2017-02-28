@@ -23,26 +23,7 @@ class Chat:
                      name=ch['NAME'])
                 for ch in chats]
 
-    def get_all_messages(self, conn):
-        """
-        :return: list, содержащий все сообщения данного чата
-        """
-        message_list = db_worker.select_list(
-            conn, 'CALL GET_CHAT_MESSAGES(%s)', (self.id,))
-        result = []
-        for mess in message_list:
-            user_id = mess['USER_ID']
-            user_sender = ModelFactory.User.get_user_by_id(conn, user_id)
-            result.append(ModelFactory.Message(
-                id=mess['MESSAGE_ID'],
-                time=mess['SEND_TIME'],
-                text=mess['MESS_TEXT'],
-                sender=user_sender,
-                enable=mess['MESS_ENABLE'],
-                chat=self))
-        return result
-
-    def get_messages_slice(self, conn, begin, limit):
+    def get_messages(self, conn, offset=0, limit=None):
         """
         :return: список из limit сообщений данного чата,
                  начиная с begin
@@ -50,7 +31,7 @@ class Chat:
         message_list = db_worker.select_list(
             conn,
             'CALL GET_CHAT_MESSAGES_SLICE(%s, %s, %s)',
-            (self.id, begin, limit))
+            (self.id, offset, limit))
         result = []
         for mess in message_list:
             user_id = mess['USER_ID']
@@ -62,12 +43,6 @@ class Chat:
                                                sender=user_sender,
                                                chat=self))
         return result
-
-    def get_last_messages(self, conn, limit):
-        """
-        :return: list, содержащий limit последних сообщений данного чата
-        """
-        return self.get_messages_slice(conn, begin=0, limit=limit)
 
     def get_user_list(self, conn):
         """
