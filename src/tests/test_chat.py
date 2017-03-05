@@ -24,11 +24,11 @@ class TestChat(unittest.TestCase):
 
     def test_chat_all_messages(self):
         ch = chat.Chat(name='support-1', id=1)
-        message_list = ch.get_all_messages(self.cursor)
+        message_list = ch.get_messages(self.cursor)
         self.assertEqual(3, len(message_list))
-        message_list = ch.get_messages_slice(self.cursor, begin=0, limit=2)
+        message_list = ch.get_messages(self.cursor, offset=0, limit=2)
         self.assertEqual(2, len(message_list))
-        message_list = ch.get_last_messages(self.cursor, limit=1)
+        message_list = ch.get_messages(self.cursor, limit=1)
         self.assertEqual(1, len(message_list))
 
     def test_user_list(self):

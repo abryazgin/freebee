@@ -2,40 +2,19 @@ USE freebee;
 
 DELIMITER $$
 
-DROP PROCEDURE IF EXISTS GET_CHAT_MESSAGES $$
-CREATE PROCEDURE GET_CHAT_MESSAGES(
-    IN vCHAT_ID INT
-)
-COMMENT 'Возвращает список всех сообщений в данном чате'
-BEGIN
-	SELECT
-			M.MESSAGE_ID,
-			M.SEND_TIME,
-			M.MESS_TEXT,
-			U.USER_ID,
-			M.ENABLE as 'MESS_ENABLE'
-		FROM
-			message as M
-			JOIN user_in_chat as UCH
-				ON UCH.USER_IN_CHAT_ID = M.USER_IN_CHAT_ID
-			JOIN user as U
-				ON U.USER_ID = UCH.USER_ID
-		WHERE
-			UCH.CHAT_ID = vCHAT_ID
-		ORDER BY
-			M.SEND_TIME DESC;
-END
-$$
-
 DROP PROCEDURE IF EXISTS GET_CHAT_MESSAGES_SLICE $$
 CREATE PROCEDURE GET_CHAT_MESSAGES_SLICE(
     IN vCHAT_ID INT,
-    IN vSTART INT,
+    IN vOFFSET INT,
     IN vLIMIT INT
 )
 COMMENT 'Возвращает список vLIMIT последних сообщений в данном чате,
-		начиная с сообщения № vSTART'
+		начиная с сообщения № vOFFSET'
 BEGIN
+	IF vLIMIT IS NULL THEN
+		SELECT get_big_num() INTO vLIMIT;
+	END IF;
+	
 	SELECT
 			M.MESSAGE_ID,
 			M.SEND_TIME,
@@ -53,7 +32,7 @@ BEGIN
 		ORDER BY
 			M.SEND_TIME DESC
 		LIMIT
-			vSTART, vLIMIT;
+			vOFFSET, vLIMIT;
 END
 $$
 
