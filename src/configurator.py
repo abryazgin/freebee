@@ -4,7 +4,7 @@
 from flask import Flask
 import config
 import logging
-from core.logging import GzRotatingFileHandler
+from core.logutils import GzRotatingFileHandler
 
 
 app = Flask(__name__)
