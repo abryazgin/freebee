@@ -1,3 +1,4 @@
+from core.tokenWallet import tokenizer
 from models import User, Chat, Message
 from models.db_worker import DBException
 from core.exception import RequestException
@@ -7,20 +8,33 @@ import datetime
 
 class AuthController(object):
 
-    def __init__(self, conn, login, password):
+    def __init__(self, conn):
         self.conn = conn
-        self.login = login
-        self.password = password
+        self.token = None
         self.curuser = None
 
-    def check(self):
+    def db_user(self, login):
         try:
-            user = User.get_user_by_login(self.conn, self.login)
+            user = User.get_user_by_login(self.conn, login)
         except DBException as e:
             raise RequestException(errmess=e.args[0], errcode=HttpCodes.not_found)
-        if not self.password == user.password:
+        return user
+
+    def check_token(self, token):
+        login = tokenizer.get_login(token)
+        if login is None:
+            raise RequestException(errmess='Нет авторизации', errcode=HttpCodes.unauthorized)
+        self.curuser = self.db_user(login)
+
+    def check_auth(self, login, password):
+        user = self.db_user(login)
+        if not password == user.password:
             raise RequestException(errmess='Неверная пара логина и пароля', errcode=HttpCodes.unauthorized)
         self.curuser = user
+
+    def get_token(self):
+        self.token = tokenizer.get_token(self.curuser.login)
+        return self.token
 
     def get_curuser(self):
         return self.curuser

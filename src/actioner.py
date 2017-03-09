@@ -5,7 +5,7 @@ import json
 from core.utils import HttpCodes
 from models.db_worker import connection
 from core.exception import RequestException
-
+import datetime
 
 class BaseActioner(object):
     """
@@ -14,20 +14,6 @@ class BaseActioner(object):
     """
     actioner_name = 'default'
 
-    # def register_action(self, control, method, dict_param):
-    #     raise NotImplementedError
-
-    @classmethod
-    def get_name(cls):
-        return cls.actioner_name
-
-    def run_action(self, control_name, method, kwargs):
-        raise NotImplementedError
-
-
-class ApiActioner(BaseActioner):
-    actioner_name = 'api'
-
     def __init__(self):
         self.curuser = None
         self.register_data = None
@@ -35,12 +21,21 @@ class ApiActioner(BaseActioner):
         self._method = None
         self.login = None
         self.password = None
-        # self._registered = False
+        self.token = None
+        self._registered = False
 
-    # def is_registered(self):
-    #     return self._registered
+    def is_registered(self):
+        return self._registered
 
-    def get_element(self, obj, attr_name, postfix='', errmess=u'не найден элемент'):
+    # def register_action(self, control, method, dict_param):
+    #     raise NotImplementedError
+
+    @classmethod
+    def get_name(cls):
+        return cls.actioner_name
+
+    @staticmethod
+    def get_element(obj, attr_name, postfix='', errmess=u'не найден элемент'):
         """
         поиск атрибутов в объекте
         :param obj: объект для поиска
@@ -58,17 +53,34 @@ class ApiActioner(BaseActioner):
             raise RequestException(errmess=errmess, errcode=HttpCodes.bed_request)
         return attr
 
+    # def register_action(self):
+    #     pass
+
+    def run_action(self):
+        raise NotImplementedError
+
+
+class ApiActioner(BaseActioner):
+    actioner_name = 'api'
+
+    def __init__(self):
+        super().__init__()
+
     def check_auth(self, conn):
-        checker = AuthController(conn, self.login, self.password)
-        checker.check()
+        checker = AuthController(conn)
+        checker.check_token(self.token)
         self.curuser = checker.get_curuser()
         return self.curuser
 
     # TODO: переделать обратно в регистер и ран
-    def register_action(self, curuser, control, method, dict_param):
+    def register_action(self, control, method, dict_param, headers):
         """
         метод регистрации действия. Находит контроллер, метод, подготавливает контроллер к работе
         """
+        self.token = headers.get('X_auth_token')
+        with connection() as conn:
+            curuser = self.check_auth(conn)
+
         control_class = self.get_element(controllers,
                                          control,
                                          postfix='controller',
@@ -76,7 +88,7 @@ class ApiActioner(BaseActioner):
         self._control = control_class(curuser)
         self._method = self.get_element(self._control, method, errmess=u'не найден метод {}'.format(method))
         self._control.prepare(dict_param)
-        self.register_data = {'control': control, 'method': method, 'dict_param': dict_param}
+        self.register_data = {'control': control, 'method': method, 'dict_param': dict_param, 'headers': headers}
         self._registered = True
 
     def log_request(self):
@@ -86,20 +98,55 @@ class ApiActioner(BaseActioner):
             json.dumps(self.register_data['dict_param'], sort_keys=True, indent=8, separators=(',', ': '))
         ))
 
-    def run_action(self, control_name, method, kwargs):
+    def run_action(self):
         """
         запуск метода
         :return: возвращает результат метода в запрошенном виде
         """
-        self.login = kwargs.pop('auth_login')
-        self.password = kwargs.pop('auth_password')
-        # if not self.is_registered():
-        #     raise RequestException(errmess=u'действие не зарегистрированно', errcode=HttpCodes.serv_err)
+        # self.login = header.get('X_auth_login')
+        # self.password = header.get('X_auth_password')
+        if not self.is_registered():
+            raise RequestException(errmess=u'действие не зарегистрированно', errcode=HttpCodes.serv_err)
         with connection() as conn:
-            curuser = self.check_auth(conn)
-            self.register_action(curuser, control_name, method, kwargs)
-            self.log_request()
             kwargs = self.register_data['dict_param']
-            kwargs['_conn'] = conn
-            res = self._method(**kwargs)
+            res = self._method(conn, **kwargs)
+            self.log_request()
+        return res
+
+
+class AuthActioner(BaseActioner):
+    actioner_name = 'auth'
+
+    def __init__(self):
+        super().__init__()
+
+    def check_auth(self, conn):
+        checker = AuthController(conn)
+        checker.check_auth(self.login, self.password)
+        self.token = checker.get_token()
+        return self.token
+
+    # TODO: переделать обратно в регистер и ран
+    def register_action(self, headers):
+        self.login = headers.get('X_auth_login')
+        self.password = headers.get('X_auth_password')
+        self._registered = True
+
+    def log_request(self):
+        app.logger.info('user : {}, password : {}, time : {}'.format(
+            self.login,
+            self.password,
+            datetime.datetime.now()
+        ))
+
+    def run_action(self):
+        """
+        запуск метода
+        :return: возвращает результат метода в запрошенном виде
+        """
+        if not self.is_registered():
+            raise RequestException(errmess=u'действие не зарегистрированно', errcode=HttpCodes.serv_err)
+        with connection() as conn:
+            res = self.check_auth(conn)
+            self.log_request()
         return res

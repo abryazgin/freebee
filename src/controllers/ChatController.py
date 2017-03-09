@@ -1,5 +1,5 @@
-import inspect
-from flask import request, redirect, url_for, session, escape
+# import inspect
+# from flask import request, redirect, url_for, session, escape
 from models import User, Chat, Message
 from controllers import ApiController
 from core.exception import RequestException
@@ -21,34 +21,31 @@ class ChatController(ApiController):
         self.curuser = curuser
         super().__init__()
 
-    def create_chat(self, chat_name, **kwargs):
+    def create_chat(self, conn, chat_name, **kwargs):
         """
         метод создания чата пользователем. чат при создании привязывается к пользователю
         :return:
         """
-        conn = kwargs['_conn']
         chat = Chat(name=chat_name)
         user = self.curuser
         chat.create(conn)
         chat.add_user(conn, user)
         return self.response_wrap(chat.id)
 
-    def user_chat(self, **kwargs):
+    def user_chat(self, conn, **kwargs):
         """
         список чатов пользователя
         """
-        conn = kwargs['_conn']
         user = self.curuser
         chats = user.get_chat_list(conn)
         resp = attr_parser(chats, self.chat_mapa)
         return self.response_wrap(resp)
 
-    def leave_chat(self, chat_id, **kwargs):  # будет переделано на disable
+    def leave_chat(self, conn, chat_id, **kwargs):  # будет переделано на disable
         """
         отмена подписки пользователя (user_id) на чат (chat_id)
         :exception RequestException если чата у пользователя нет
         """
-        conn = kwargs['_conn']
         user = self.curuser
         chats = {str(chat.id): chat for chat in user.get_chat_list(conn)}
         if chat_id not in chats:
@@ -59,13 +56,12 @@ class ChatController(ApiController):
         chat.remove_user(conn, user)
         return self.response_wrap(True)
 
-    def message_send(self, body, chat_id, **kwargs):
+    def message_send(self, conn, body, chat_id, **kwargs):
         """
         отправка сообщения в чат (chat_id) от пользователя (user_id)
         :param body: текст сообщения
         :exception RequestException если чата у пользователя нет
         """
-        conn = kwargs['_conn']
         now = datetime.datetime.now()
         user = self.curuser
         chats = {str(chat.id): chat for chat in user.get_chat_list(conn)}
@@ -78,12 +74,11 @@ class ChatController(ApiController):
         mess.create(conn)
         return self.response_wrap(True)
 
-    def message_lst(self, chat_id, **kwargs):
+    def message_lst(self, conn, chat_id, **kwargs):
         """
         метод возвращает список сообщений из чата (chat_id)
         :exception RequestException если чата у пользователя нет
         """
-        conn = kwargs['_conn']
         user = self.curuser
         chats = {str(chat.id): chat for chat in user.get_chat_list(conn)}
         if chat_id not in chats:
@@ -91,7 +86,7 @@ class ChatController(ApiController):
             errcode = HttpCodes.bed_request
             raise RequestException(errmess=errmess, errcode=errcode)
         chat = chats[chat_id]
-        mess_mass = chat.get_all_messages(conn)
+        mess_mass = chat.get_messages(conn)
         mapa = self.message_mapa
         resp = attr_parser(mess_mass, mapa)
         return self.response_wrap(resp)

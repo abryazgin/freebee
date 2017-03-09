@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding:utf-8 -*-
 
-from flask import Flask
+from flask import Flask, request
 from collections import namedtuple
 import datetime
 import hashlib
@@ -82,24 +82,30 @@ class TokenWallet(object):
         token_spec = self.get_token_spec(token)
         if token_spec and self.check_token_time(token_spec):
             return token_spec.login
+        return
 
     def get_all_token(self):
         return str(list(self.tokens.keys()))
 
 tokenizer = TokenWallet()
 
-@app.route('/token/<string:login>/')
-def get_token(login):
-    return tokenizer.get_token(login)
-
-@app.route('/method/<string:token>/')
-def get_login(token):
-    return tokenizer.get_login(token)
-
-@app.route('/all/')
-def get_all_token():
-    return tokenizer.get_all_token()
 
 
 if __name__ == '__main__':
+    @app.route('/token/<string:login>/')
+    def get_token(login):
+        print(request.headers.get('atshygfonnection'))
+        return tokenizer.get_token(login)
+
+
+    @app.route('/method/<string:token>/')
+    def get_login(token):
+        return tokenizer.get_login(token)
+
+
+    @app.route('/all/')
+    def get_all_token():
+        return tokenizer.get_all_token()
+
+
     app.run(debug=True)
