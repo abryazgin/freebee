@@ -146,10 +146,12 @@ class User:
         """
         return db_worker.delete(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
 
-
-if __name__ == '__main__':
-    db = db_worker.get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.close()
-    db.close()
+    def equal(self, other):
+        """ Возвращает True, если пользователи полностью совпадают
+        """
+        return self.id == other.id and \
+               self.login == other.login and \
+               self.email == other.email and \
+               self.password == other.password and \
+               self.role == other.role and \
+               self.enable == other.enable

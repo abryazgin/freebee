@@ -105,11 +105,3 @@ class Chat:
         """
         return db_worker.update(
             conn, 'CALL REMOVE_USER_FROM_CHAT(%s, %s)', (us.id, self.id))
-
-
-if __name__ == '__main__':
-    db = db_worker.get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.close()
-    db.close()

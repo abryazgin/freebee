@@ -49,11 +49,3 @@ class Message:
             (self.id, self.sender.id, self.chat.id, self.time,
              self.text, self.enable))
         return result
-
-
-if __name__ == '__main__':
-    db = db_worker.get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.close()
-    db.close()
