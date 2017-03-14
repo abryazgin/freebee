@@ -7,6 +7,7 @@ app_api = Blueprint('api', __name__)
 
 @app_api.route('/auth/', methods=['POST'])
 def auth():
+    # print(dir(request))
     header_params = request.headers
     mod_name = 'auth'
     mod = None
