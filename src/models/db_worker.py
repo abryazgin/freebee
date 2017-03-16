@@ -1,7 +1,8 @@
-import mysql.connector
 from contextlib import contextmanager
 
-import config as config
+import mysql.connector
+
+from configs import config as config
 
 
 class DBException(Exception):
