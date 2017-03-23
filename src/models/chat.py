@@ -66,16 +66,14 @@ class Chat:
 
     @staticmethod
     def delete(conn, ch):
-        """
-        Удаляет данный чат из бд.
+        """ Удаляет данный чат из бд.
         :exception: db_worker.DBException, если чат не сохранён в базе.
         :return: Количество изменённых в бд строк.
         """
         return db_worker.delete(conn, 'CALL DELETE_CHAT_BY_ID(%s)', (ch.id,))
 
     def update(self, conn):
-        """
-        Обновляет данные о чате в бд.
+        """ Обновляет данные о чате в бд.
         :exception: db_worker.DBException, если чат не сохранён в бд.
         :return: Количество изменённых в бд строк.
         """
@@ -85,8 +83,7 @@ class Chat:
         return result
 
     def add_user(self, conn, us):
-        """
-        Добавляет пользователя в чат.
+        """ Добавляет пользователя в чат.
         :exception: db_worker.DBException,
                     если чат/пользователь не сохранены в бд
                     или пользователь уже добавлен в чат.
@@ -96,8 +93,7 @@ class Chat:
             conn, 'CALL ADD_USER_IN_CHAT(%s, %s)', (self.id, us.id))
 
     def remove_user(self, conn, us):
-        """
-        Удаляет пользователя из чат.
+        """ Удаляет пользователя из чат.
         :exception: db_worker.DBException,
                     если чат/пользователь не сохранены в бд
                     или пользователь не входит в чат.
