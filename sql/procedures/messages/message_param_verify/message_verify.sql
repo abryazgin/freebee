@@ -22,25 +22,6 @@ COMMENT 'Проверяет существование пользователя 
             - vMSG:
                 сообщение об ошибке.'
 PROC : BEGIN
-    -- TODO проверить:
-    IF  
-        vMESSAGE_ID IS NULL OR
-        vUSER_ID IS NULL OR
-        vCHAT_ID IS NULL OR
-        vSEND_TIME IS NULL OR
-        vMESS_TEXT IS NULL
-    THEN
-        SET vRESCODE = 0;
-        SET vMSG = CONCAT(
-                    'Один из параметров NULL:',
-                    ' vMESSAGE_ID = ', vMESSAGE_ID,
-                    ', vUSER_ID = ', vUSER_ID,
-                    ', vCHAT_ID = ', vCHAT_ID,
-                    ', vSEND_TIME = ', vSEND_TIME,
-                    ', vMESS_TEXT = ', vMESS_TEXT);
-        LEAVE PROC;
-    END IF;
-    
     CALL CHECK_USER_IN_CHAT(
         vUSER_ID,
         vCHAT_ID,

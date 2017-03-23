@@ -17,7 +17,7 @@ COMMENT 'Проверяет, входит ли данный пользовате
                 1 - пользователь входит в чат.
             - vMSG: сообщение об ошибке.'
 PROC2 : BEGIN
-    -- проверка на существование пользователя
+    -- проверка на существование чата
     CALL CHAT_ID_VERIFY(vCHAT_ID, @resultcode);
     IF @resultcode = 0 THEN
             SET vRESCODE = -1;
@@ -25,7 +25,7 @@ PROC2 : BEGIN
             LEAVE PROC2;
     END IF;
     
-    -- проверка на существование чата
+    -- проверка на существование пользователя
     CALL USER_ID_VERIFY(vUSER_ID, @resultcode);
         IF @resultcode = 0 THEN
             SET vRESCODE = -1;
