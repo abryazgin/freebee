@@ -25,23 +25,6 @@ COMMENT 'Проверяет уникальность переданных vLOGIN
             - vMSG:
                 сообщение об ошибке.'
 PROC : BEGIN
-    -- TODO проверить:
-    IF  
-        vUSER_ID IS NULL OR
-        vLOGIN IS NULL OR
-        vEMAIL IS NULL OR
-        vROLE IS NULL
-    THEN
-        SET vRESCODE = 0;
-        SET vMSG = CONCAT(
-                    'Один из параметров NULL:',
-                    ' vUSER_ID = ', vUSER_ID,
-                    ', vLOGIN = ', vLOGIN,
-                    ', vEMAIL = ', vEMAIL,
-                    ', vROLE = ', vROLE);
-        LEAVE PROC;
-    END IF;
-   
     -- Проверка существования роли
     SET @roleid = NULL;
     SELECT

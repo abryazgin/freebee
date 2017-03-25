@@ -1,7 +1,8 @@
-import mysql.connector
 from contextlib import contextmanager
 
-import config as config
+import mysql.connector
+
+from configs import config as config
 
 
 class DBException(Exception):
@@ -9,8 +10,7 @@ class DBException(Exception):
 
 
 class SqlResult:
-    """
-    Представляет результат запроса к бд.
+    """ Представляет результат запроса к бд.
     """
     def __init__(self, result, rescode, rowcnt, errormsg):
         """
@@ -30,17 +30,15 @@ class SqlResult:
 
 
 def _execute(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд. Не для внешнего использования.
+    """ Выполняет запрос к бд. Не для внешнего использования.
     :param conn: объект mysql.connector.connect.cursor()
     """
     return conn.execute(sql_query, sql_args, multi=True)
 
 
 def execute(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд и предоставляет результат
-    в форме экземпляра SqlResult.
+    """ Выполняет запрос к бд
+    и предоставляет результат в форме экземпляра SqlResult.
 
     Не для внешнего использования.
     :param conn: объект mysql.connector.connect
@@ -73,24 +71,21 @@ def execute(conn, sql_query, sql_args=None):
 
 
 def select_list(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд, предполагающий результат в виде нескольких строк.
+    """ Выполняет запрос к бд, предполагающий результат в виде нескольких строк.
     """
     res = execute(conn, sql_query, sql_args).result
     return res
 
 
 def select_obj(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд, предполагающий результат в виде одной строки.
+    """ Выполняет запрос к бд, предполагающий результат в виде одной строки.
     """
     res = execute(conn, sql_query, sql_args).result
     return res[0] if len(res) != 0 else None
 
 
 def insert(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд, предполагающий вставку новой строки.
+    """ Выполняет запрос к бд, предполагающий вставку новой строки.
     Возвращает LAST_INSERT_ID() в случае успеха,
     иначе - возбуждает исключение DBException
     """
@@ -103,8 +98,7 @@ def insert(conn, sql_query, sql_args=None):
 
 # TODO подумать над разницей между delete(...) и update(...)
 def delete(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд, предполагающий вставку новой строки.
+    """ Выполняет запрос к бд, предполагающий вставку новой строки.
     Возвращает кол-во изменённых строк в случае успеха,
     иначе - возбуждает исключение DBException.
     """
@@ -113,8 +107,7 @@ def delete(conn, sql_query, sql_args=None):
 
 
 def update(conn, sql_query, sql_args=None):
-    """
-    Выполняет запрос к бд, предполагающий вставку новой строки.
+    """ Выполняет запрос к бд, предполагающий вставку новой строки.
     Возвращает кол-во изменённых строк в случае успеха,
     иначе - возбуждает исключение DBException.
     """

@@ -9,3 +9,9 @@ Feature: Showing off behave
         Given user with login "john"
         When user enable changing
         Then user enable changed
+
+    Scenario: User create and read
+        Given random user create
+        Given new user
+
+        Then user must be the same

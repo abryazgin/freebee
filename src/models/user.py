@@ -112,8 +112,7 @@ class User:
                 for msg in message_list]
 
     def create(self, conn):
-        """
-        Выполняет сохранение данного пользователя в бд и присвает ему id.
+        """ Выполняет сохранение данного пользователя в бд и присвает ему id.
         :exception: db_worker.DBException,
                     если в базе есть пользователь с указанным логином или id.
         """
@@ -123,8 +122,7 @@ class User:
             (self.login, self.email, self.password, self.role))
 
     def update(self, conn):
-        """
-        Обновляет данные о пользователе в бд.
+        """ Обновляет данные о пользователе в бд.
         :exception: db_worker.DBException,
                     если новые данные некорректны или
                     пользователь не сохранён в бд.
@@ -138,18 +136,19 @@ class User:
 
     @staticmethod
     def delete(conn, u):
-        """
-        Удаляет данного пользователя из бд.
+        """ Удаляет данного пользователя из бд.
         :exception: db_worker.DBException,
                     если пользователь не сохранён в базе.
         :return: Количество изменённых в бд строк.
         """
         return db_worker.delete(conn, 'CALL DELETE_USER_BY_ID(%s)', (u.id,))
 
-
-if __name__ == '__main__':
-    db = db_worker.get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.close()
-    db.close()
+    def equal(self, other):
+        """ Возвращает True, если пользователи полностью совпадают
+        """
+        return self.id == other.id and \
+               self.login == other.login and \
+               self.email == other.email and \
+               self.password == other.password and \
+               self.role == other.role and \
+               self.enable == other.enable

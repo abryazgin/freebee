@@ -17,18 +17,16 @@ class Message:
             self.time, self.text)
 
     def create(self, conn):
-        """
-        Выполняет сохранение данного чата в бд и присвает ему id.
+        """ Выполняет сохранение данного сообщения в бд и присвает ему id.
         """
         self.id = db_worker.insert(
             conn,
-            'CALL CREATE_MESSAGE(%s, %s, %s, %s, %s)',
-            (self.sender.id, self.chat.id, self.time, self.text, self.enable))
+            'CALL CREATE_MESSAGE(%s, %s, %s, %s)',
+            (self.sender.id, self.chat.id, self.time, self.text))
 
     @staticmethod
     def delete(conn, mess):
-        """
-        Удаляет сообщение из бд.
+        """ Удаляет сообщение из бд.
         :exception: db_worker.DBException, если сообщение не сохранено в базе.
         :return: Количество изменённых в бд строк.
         """
@@ -36,8 +34,7 @@ class Message:
             conn, 'CALL DELETE_MESSAGE_BY_ID(%s)', (mess.id,))
 
     def update(self, conn):
-        """
-        Обновляет данные о сообщение в бд.
+        """ Обновляет данные о сообщение в бд.
         :exception: db_worker.DBException,
                     если новые данные некорректны или
                     сообщение не сохранено в бд.
@@ -49,11 +46,3 @@ class Message:
             (self.id, self.sender.id, self.chat.id, self.time,
              self.text, self.enable))
         return result
-
-
-if __name__ == '__main__':
-    db = db_worker.get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.close()
-    db.close()
