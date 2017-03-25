@@ -1,15 +1,16 @@
 #!/usr/bin/python3
 # -*- coding:utf-8 -*-
 
-from flask import Flask
-import config
 import logging
-from core.logutils import GzRotatingFileHandler
 
+from flask import Flask
+
+from configs import config
+from core.logutils import GzRotatingFileHandler
 
 app = Flask(__name__)
 app.config.from_object(config)
-
+app.debug = app.config['DEBUG']
 # ######## session ##########
 
 app.secret_key = app.config['SECRET_KEY']

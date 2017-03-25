@@ -1,6 +1,7 @@
 from flask import Blueprint, request
-from actioner import BaseActioner, RequestException
-import actioner
+from actioners import BaseActioner
+from core.exception import RequestException
+import actioners
 
 app_api = Blueprint('api', __name__)
 
@@ -10,8 +11,8 @@ def auth():
     header_params = request.headers
     mod_name = 'auth'
     mod = None
-    for element in dir(actioner):
-        var = getattr(actioner, element)
+    for element in dir(actioners):
+        var = getattr(actioners, element)
         if issubclass(var, BaseActioner) and var.get_name() == mod_name:
             mod = var()
             break
@@ -32,8 +33,8 @@ def parse(mod_name, control_name, method):
     kwargs = request.values.to_dict()
     header_params = request.headers
     mod = None
-    for element in dir(actioner):
-        var = getattr(actioner, element)
+    for element in dir(actioners):
+        var = getattr(actioners, element)
         if issubclass(var, BaseActioner) and var.get_name() == mod_name:
             mod = var()
             break
